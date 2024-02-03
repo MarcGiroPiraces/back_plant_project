@@ -4,7 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { PlantModule } from './plant/plant.module';
+import { SpotModule } from './spot/spot.module';
 import { UserModule } from './user/user.module';
+import { WateringModule } from './watering/watering.module';
+import { TransplantingModule } from './transplanting/transplanting.module';
 
 @Module({
   imports: [
@@ -18,6 +22,10 @@ import { UserModule } from './user/user.module';
       autoLoadEntities: true,
     }),
     UserModule,
+    PlantModule,
+    SpotModule,
+    WateringModule,
+    TransplantingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
