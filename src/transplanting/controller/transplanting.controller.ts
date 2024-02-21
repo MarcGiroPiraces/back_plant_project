@@ -20,11 +20,8 @@ export class TransplantingController {
   }
 
   @Get()
-  findAll(@Query('plantsIds') plantsIds: string) {
-    const parsedPlantsIds = plantsIds
-      ? plantsIds.split(',').map((id) => +id)
-      : undefined;
-    return this.transplantingService.findAll(parsedPlantsIds);
+  findAll(@Query('plantsId') plantId: string) {
+    return this.transplantingService.findAll(+plantId);
   }
 
   @Get(':id')

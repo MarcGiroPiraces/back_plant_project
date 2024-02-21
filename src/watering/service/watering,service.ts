@@ -56,30 +56,22 @@ export class WateringService {
   }
 
   async findAll(plantsIds: string): Promise<Watering[]> {
-    const baseQuery = this.wateringRepository
+    let baseQuery = this.wateringRepository
       .createQueryBuilder('watering')
       .leftJoinAndSelect('watering.plant', 'plant');
 
     if (plantsIds) {
-      const plantsIdsFormatred = plantsIds
+      const plantsIdsFormatted = plantsIds
         .split(',')
         .map((id) => parseInt(id, 10));
 
-      try {
-        return await baseQuery
-          .where('plant.id IN (:...plantsIds)', {
-            plantsIds: plantsIdsFormatred,
-          })
-          .getMany();
-      } catch (error) {
-        throw new HttpException(
-          `Error getting all the waterings from the plants ${plantsIds}.`,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      baseQuery = baseQuery.where('plant.id IN (:plantsIds)', {
+        plantsIds: plantsIdsFormatted,
+      });
     }
+
     try {
-      return await baseQuery.getMany();
+      return await baseQuery.orderBy('date', 'DESC').getMany();
     } catch (error) {
       throw new HttpException(
         `Error getting all the waterings from the plants ${plantsIds}.`,

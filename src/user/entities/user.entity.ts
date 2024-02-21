@@ -20,5 +20,5 @@ export class User {
   plants: number[];
 
   @OneToMany(() => Spot, (spot) => spot.user)
-  spots: Spot[];
+  spots: number[];
 }
