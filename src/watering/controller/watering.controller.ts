@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CreateWateringDto } from '../dto/create-watering.dto';
 import { WateringService } from '../service/watering,service';
 
@@ -12,8 +20,8 @@ export class WateringController {
   }
 
   @Get()
-  findAll(plantsIds: string) {
-    return this.wateringService.findAll(plantsIds);
+  findAll(@Query('plantId') plantId: string) {
+    return this.wateringService.findAll(+plantId);
   }
 
   @Get(':id')

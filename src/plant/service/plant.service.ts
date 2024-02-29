@@ -9,7 +9,7 @@ export class PlantService {
   constructor(
     @InjectRepository(Plant) private plantRepository: Repository<Plant>,
   ) {}
-  async create(createPlantDto: CreatePlantDto) {
+  async create(createPlantDto: CreatePlantDto): Promise<number> {
     try {
       createPlantDtoSchema.parse(createPlantDto);
     } catch (error) {
@@ -36,7 +36,7 @@ export class PlantService {
         .into(Plant)
         .values({ ...newPlantData, createdAt: new Date() })
         .execute();
-      const newPlantId = identifiers[0].id;
+      const newPlantId = identifiers[0].id as number;
       await this.plantRepository
         .createQueryBuilder('plant')
         .relation(Plant, 'user')
@@ -66,11 +66,12 @@ export class PlantService {
         .leftJoinAndSelect('plant.transplantings', 'transplantings')
         .leftJoinAndSelect('plant.spot', 'spot');
       if (userId) {
-        return plantsQuery
+        return await plantsQuery
           .where('plant.userId = :userId', { userId })
           .getMany();
       }
-      return plantsQuery.getMany();
+
+      return await plantsQuery.getMany();
     } catch (error) {
       throw new HttpException(
         'Error getting all plants.',
@@ -96,7 +97,7 @@ export class PlantService {
     }
   }
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: number) {
     try {
       const removedPlant = await this.plantRepository
         .createQueryBuilder()

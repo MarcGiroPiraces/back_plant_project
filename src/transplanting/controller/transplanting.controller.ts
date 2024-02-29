@@ -20,7 +20,7 @@ export class TransplantingController {
   }
 
   @Get()
-  findAll(@Query('plantsId') plantId: string) {
+  findAll(@Query('plantId') plantId: string) {
     return this.transplantingService.findAll(+plantId);
   }
 

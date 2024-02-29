@@ -13,8 +13,12 @@ export class WateringService {
     @InjectRepository(Watering)
     private wateringRepository: Repository<Watering>,
   ) {}
-  async create(createWateringDto: CreateWateringDto): Promise<number> {
-    createWateringSchema.parse(createWateringDto);
+  async create(createWateringDto: CreateWateringDto) {
+    try {
+      createWateringSchema.parse(createWateringDto);
+    } catch (error) {
+      throw new HttpException('Invalid data provided.', HttpStatus.BAD_REQUEST);
+    }
     createWateringDto.date = new Date(createWateringDto.date);
 
     const isWateringRegistered = await this.wateringRepository
@@ -39,7 +43,7 @@ export class WateringService {
         .values(createWateringDto)
         .execute();
 
-      const newWateringId = identifiers[0].id;
+      const newWateringId = identifiers[0].id as number;
       await this.wateringRepository
         .createQueryBuilder('watering')
         .relation(Watering, 'plant')
@@ -55,18 +59,14 @@ export class WateringService {
     }
   }
 
-  async findAll(plantsIds: string): Promise<Watering[]> {
+  async findAll(plantId: number) {
     let baseQuery = this.wateringRepository
       .createQueryBuilder('watering')
       .leftJoinAndSelect('watering.plant', 'plant');
 
-    if (plantsIds) {
-      const plantsIdsFormatted = plantsIds
-        .split(',')
-        .map((id) => parseInt(id, 10));
-
-      baseQuery = baseQuery.where('plant.id IN (:plantsIds)', {
-        plantsIds: plantsIdsFormatted,
+    if (plantId) {
+      baseQuery = baseQuery.where('plant.id = :plantId', {
+        plantId,
       });
     }
 
@@ -74,13 +74,13 @@ export class WateringService {
       return await baseQuery.orderBy('date', 'DESC').getMany();
     } catch (error) {
       throw new HttpException(
-        `Error getting all the waterings from the plants ${plantsIds}.`,
+        `Error getting all the waterings from the plant ${plantId}.`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  async findOne(id: number): Promise<Watering> {
+  async findOne(id: number) {
     const watering = await this.wateringRepository
       .createQueryBuilder('watering')
       .where('id = :id', { id })
@@ -91,10 +91,11 @@ export class WateringService {
         HttpStatus.NOT_FOUND,
       );
     }
+
     return watering;
   }
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: number) {
     try {
       const removedWatering = await this.wateringRepository
         .createQueryBuilder()

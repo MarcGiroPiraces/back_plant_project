@@ -5,7 +5,7 @@ export interface CreateTransplantingDto {
   plantId: number;
   potUpsize: boolean;
   soilChange: boolean;
-  soilMix?: string;
+  soilMix: string;
 }
 
 export const createTransplantingSchema = z.object({
@@ -13,5 +13,5 @@ export const createTransplantingSchema = z.object({
   plantId: z.number(),
   potUpsize: z.boolean(),
   soilChange: z.boolean(),
-  soilMix: z.string().optional(),
+  soilMix: z.string(),
 });

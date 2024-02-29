@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateSpotDto, CreateSpotSchema } from '../dto/create-spot.dto';
-import { UpdateSpotDto } from '../dto/update-spot.dto';
 import { Spot } from '../entities/spot.entity';
 
 @Injectable()
@@ -38,7 +37,7 @@ export class SpotService {
         .into(Spot)
         .values({ ...newSpotData })
         .execute();
-      const newSpotId = identifiers[0].id;
+      const newSpotId = identifiers[0].id as number;
       await this.spotRepository
         .createQueryBuilder('spot')
         .relation(Spot, 'user')
@@ -54,17 +53,18 @@ export class SpotService {
     }
   }
 
-  findAll(userId: number) {
+  async findAll(userId: number) {
     try {
-      const baseQuery = this.spotRepository
+      let baseQuery = this.spotRepository
         .createQueryBuilder('spot')
         .leftJoinAndSelect('spot.user', 'user')
         .leftJoinAndSelect('spot.plants', 'plants');
 
       if (userId) {
-        return baseQuery.where('spot.user = :userId', { userId }).getMany();
+        baseQuery = baseQuery.where('spot.user = :userId', { userId });
       }
-      return baseQuery.getMany();
+
+      return await baseQuery.getMany();
     } catch (error) {
       throw new HttpException(
         'Error getting all spots.',
@@ -73,9 +73,9 @@ export class SpotService {
     }
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
     try {
-      return this.spotRepository
+      return await this.spotRepository
         .createQueryBuilder('spot')
         .leftJoinAndSelect('spot.user', 'user')
         .leftJoinAndSelect('spot.plants', 'plants')
@@ -87,10 +87,6 @@ export class SpotService {
         HttpStatus.NOT_FOUND,
       );
     }
-  }
-
-  update(id: number, updateSpotDto: UpdateSpotDto) {
-    return `This action updates a #${id} spot`;
   }
 
   async remove(id: number) {
@@ -107,6 +103,7 @@ export class SpotService {
           HttpStatus.NOT_FOUND,
         );
       }
+
       return removedSpot.affected === 1;
     } catch (error) {
       throw new HttpException(

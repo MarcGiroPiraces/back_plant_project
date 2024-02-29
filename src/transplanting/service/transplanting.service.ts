@@ -20,12 +20,6 @@ export class TransplantingService {
       throw new HttpException('Invalid data provided.', HttpStatus.BAD_REQUEST);
     }
 
-    if (!createTransplantingDto.soilMix) {
-      createTransplantingDto.soilMix = await this.findLastTransplanting(
-        createTransplantingDto.plantId,
-      ).then((lastTransplanting) => lastTransplanting.soilMix);
-    }
-
     createTransplantingDto.date = new Date(createTransplantingDto.date);
     const { identifiers } = await this.repository
       .createQueryBuilder()
@@ -34,7 +28,7 @@ export class TransplantingService {
       .values(createTransplantingDto)
       .execute();
 
-    const newTransplantingId = identifiers[0].id;
+    const newTransplantingId = identifiers[0].id as number;
     await this.repository
       .createQueryBuilder('transplanting')
       .relation(Transplanting, 'plant')
@@ -97,21 +91,6 @@ export class TransplantingService {
     } catch (error) {
       throw new HttpException(
         'Error while removing the transplanting.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async findLastTransplanting(plantId: number): Promise<Transplanting> {
-    try {
-      return await this.repository
-        .createQueryBuilder('transplanting')
-        .where('plantId = :plantId', { plantId })
-        .orderBy('date', 'DESC')
-        .getOne();
-    } catch (error) {
-      throw new HttpException(
-        'Error while fetching the last transplanting.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

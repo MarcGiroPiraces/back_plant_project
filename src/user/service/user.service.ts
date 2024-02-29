@@ -11,7 +11,7 @@ export class UserService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<number> {
+  async create(createUserDto: CreateUserDto) {
     try {
       createUserSchema.parse(createUserDto);
     } catch (error) {
@@ -34,7 +34,7 @@ export class UserService {
         .values(createUserDto)
         .execute();
 
-      return identifiers[0].id;
+      return identifiers[0].id as number;
     } catch (error) {
       throw new HttpException(
         'Error creating the user.',
@@ -43,7 +43,7 @@ export class UserService {
     }
   }
 
-  async findAll(): Promise<User[]> {
+  async findAll() {
     try {
       return await this.userRepository
         .createQueryBuilder('user')
@@ -58,7 +58,7 @@ export class UserService {
     }
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(id: number) {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.plants', 'plant')
@@ -70,10 +70,11 @@ export class UserService {
         HttpStatus.NOT_FOUND,
       );
     }
+
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<boolean> {
+  async update(id: number, updateUserDto: UpdateUserDto) {
     const updatedUser = await this.userRepository
       .createQueryBuilder()
       .update(User)
@@ -91,7 +92,7 @@ export class UserService {
     return updatedUser.affected === 1;
   }
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: number) {
     try {
       const deletedUser = await this.userRepository
         .createQueryBuilder()
@@ -99,6 +100,7 @@ export class UserService {
         .from(User)
         .where('id = :id', { id })
         .execute();
+
       return deletedUser.affected === 1;
     } catch (error) {
       throw new HttpException(

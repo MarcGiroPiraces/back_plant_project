@@ -21,6 +21,9 @@ export class Plant {
   @Column({})
   description: string;
 
+  @Column({ nullable: true })
+  atHomeSince: Date;
+
   @Column({})
   createdAt: Date;
 
