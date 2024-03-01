@@ -13,5 +13,5 @@ export class Watering {
   fertilizer: boolean;
 
   @ManyToOne(() => Plant, (plant) => plant.waterings, { cascade: true })
-  plant: number;
+  plant: Plant;
 }

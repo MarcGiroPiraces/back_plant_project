@@ -17,8 +17,8 @@ export class User {
   password: string;
 
   @OneToMany(() => Plant, (plant) => plant.user)
-  plants: number[];
+  plants: Plant[];
 
   @OneToMany(() => Spot, (spot) => spot.user)
-  spots: number[];
+  spots: Spot[];
 }

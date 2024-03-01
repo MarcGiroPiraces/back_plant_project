@@ -10,7 +10,7 @@ export class Transplanting {
   date: Date;
 
   @ManyToOne(() => Plant, (plant) => plant.transplantings, { cascade: true })
-  plant: number;
+  plant: Plant;
 
   @Column()
   potUpsize: boolean;

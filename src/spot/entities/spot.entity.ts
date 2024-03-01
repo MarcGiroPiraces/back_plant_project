@@ -30,8 +30,8 @@ export class Spot {
   place: string;
 
   @OneToMany(() => Plant, (plant) => plant.spot)
-  plants: number[];
+  plants: Plant[];
 
   @ManyToOne(() => User, (user) => user.spots)
-  user: number;
+  user: User;
 }

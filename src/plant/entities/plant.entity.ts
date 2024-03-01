@@ -28,14 +28,14 @@ export class Plant {
   createdAt: Date;
 
   @ManyToOne(() => User, (user) => user.plants, { onDelete: 'CASCADE' })
-  user: number;
+  user: User;
 
   @OneToMany(() => Watering, (watering) => watering.plant)
-  waterings: number[];
+  waterings: Watering[];
 
   @OneToMany(() => Transplanting, (transplanting) => transplanting.plant)
-  transplantings: number[];
+  transplantings: Transplanting[];
 
   @ManyToOne(() => Spot, (spot) => spot.plants, { cascade: true })
-  spot: number;
+  spot: Spot;
 }

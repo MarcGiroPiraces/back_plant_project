@@ -75,10 +75,10 @@ export class UserService {
   }
 
   async findOneByEmail(email: string) {
-    const user = await this.userRepository
+    const user = (await this.userRepository
       .createQueryBuilder('user')
       .where('user.email = :email', { email })
-      .getOne();
+      .getRawOne()) as User;
     if (!user) {
       throw new HttpException(
         `User with email ${email} not found.`,
