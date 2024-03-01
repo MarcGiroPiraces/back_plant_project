@@ -74,6 +74,21 @@ export class UserService {
     return user;
   }
 
+  async findOneByEmail(email: string) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.email = :email', { email })
+      .getOne();
+    if (!user) {
+      throw new HttpException(
+        `User with email ${email} not found.`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return user;
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto) {
     const updatedUser = await this.userRepository
       .createQueryBuilder()
