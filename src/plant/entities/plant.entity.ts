@@ -21,7 +21,7 @@ export class Plant {
   @Column({})
   description: string;
 
-  @Column({ nullable: true })
+  @Column({})
   atHomeSince: Date;
 
   @Column({})
@@ -36,6 +36,6 @@ export class Plant {
   @OneToMany(() => Transplanting, (transplanting) => transplanting.plant)
   transplantings: Transplanting[];
 
-  @ManyToOne(() => Spot, (spot) => spot.plants, { cascade: true })
+  @ManyToOne(() => Spot, (spot) => spot.plants)
   spot: Spot;
 }

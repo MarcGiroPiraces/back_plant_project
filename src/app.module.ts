@@ -9,6 +9,7 @@ import { SpotModule } from './spot/spot.module';
 import { UserModule } from './user/user.module';
 import { WateringModule } from './watering/watering.module';
 import { TransplantingModule } from './transplanting/transplanting.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { TransplantingModule } from './transplanting/transplanting.module';
     SpotModule,
     WateringModule,
     TransplantingModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

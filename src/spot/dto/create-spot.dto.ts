@@ -1,14 +1,13 @@
 import { z } from 'zod';
-import { Room, roomOptions } from '../entities/spot.entity';
 
 export class CreateSpotDto {
-  room: Room;
+  room: string;
   place: string;
   userId: number;
 }
 
 export const CreateSpotSchema = z.object({
-  room: z.nativeEnum(roomOptions),
+  room: z.string(),
   place: z.string(),
   userId: z.number(),
 });

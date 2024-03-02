@@ -18,11 +18,9 @@ export class UserService {
       throw new HttpException('Invalid data provided.', HttpStatus.BAD_REQUEST);
     }
 
-    const isEmailRegistered = await this.userRepository
-      .createQueryBuilder('user')
-      .where('user.email = :email', { email: createUserDto.email })
-      .getOne();
-
+    const isEmailRegistered = await this.findOneByEmailRepo(
+      createUserDto.email,
+    );
     if (isEmailRegistered) {
       throw new HttpException('Email already in use.', HttpStatus.BAD_REQUEST);
     }
@@ -74,20 +72,14 @@ export class UserService {
     return user;
   }
 
-  async findOneByEmail(email: string) {
+  async findOneByEmailRepo(email: string) {
     const user = (await this.userRepository
       .createQueryBuilder('user')
       .addSelect('user.password')
       .where('user.email = :email', { email })
       .getOne()) as User;
-    if (!user) {
-      throw new HttpException(
-        `User with email ${email} not found.`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
 
-    return user;
+    return user || null;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {

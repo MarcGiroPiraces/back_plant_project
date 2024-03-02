@@ -25,7 +25,8 @@ export class PlantController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string, request: Request) {
+    console.log(request);
     return this.plantService.findOne(+id);
   }
 

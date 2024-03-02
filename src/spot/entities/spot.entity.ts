@@ -24,7 +24,7 @@ export class Spot {
   id: number;
 
   @Column({})
-  room: Room;
+  room: string;
 
   @Column({})
   place: string;

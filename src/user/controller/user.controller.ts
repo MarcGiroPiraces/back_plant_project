@@ -6,7 +6,10 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { LocalAuthGuard } from 'src/auth/guards/local-auth.guard';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserService } from '../service/user.service';
@@ -20,11 +23,15 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
+  @UseGuards(LocalAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
+  findAll(request: Request) {
+    console.log(request);
     return this.userService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
