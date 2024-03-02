@@ -21,8 +21,8 @@ export class AuthService {
     return null;
   }
 
-  async login(user: User) {
-    const payload = { email: 'loguimarc@gmail.com', sub: 1 };
+  async login(user: Partial<User>) {
+    const payload = { email: user.email, sub: user.id, name: user.name };
 
     return {
       access_token: this.jwtService.sign(payload),

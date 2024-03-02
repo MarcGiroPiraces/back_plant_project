@@ -1,4 +1,5 @@
 import { Controller, Post, Request, UseGuards } from '@nestjs/common';
+import { CustomRequest } from './CustomRequest';
 import { LocalAuthGuard } from './auth/guards/local-auth.guard';
 import { AuthService } from './auth/service/auth.service';
 
@@ -8,7 +9,7 @@ export class AppController {
 
   @UseGuards(LocalAuthGuard)
   @Post()
-  async login(@Request() req) {
+  async login(@Request() req: CustomRequest) {
     return this.authService.login(req.user);
   }
 }

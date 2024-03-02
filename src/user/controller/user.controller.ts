@@ -6,10 +6,11 @@ import {
   Param,
   Patch,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
+import { CustomRequest } from 'src/CustomRequest';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { LocalAuthGuard } from 'src/auth/guards/local-auth.guard';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserService } from '../service/user.service';
@@ -23,11 +24,10 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
-  @UseGuards(LocalAuthGuard)
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(request: Request) {
-    console.log(request);
+  findAll(@Request() req: CustomRequest) {
+    console.log(req.user);
     return this.userService.findAll();
   }
 

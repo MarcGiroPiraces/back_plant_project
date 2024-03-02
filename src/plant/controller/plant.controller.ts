@@ -7,6 +7,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { CustomRequest } from 'src/CustomRequest';
 import { CreatePlantDto } from '../dto/create-plant.dto';
 import { PlantService } from '../service/plant.service';
 
@@ -25,7 +26,7 @@ export class PlantController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, request: Request) {
+  findOne(@Param('id') id: string, request: CustomRequest) {
     console.log(request);
     return this.plantService.findOne(+id);
   }
