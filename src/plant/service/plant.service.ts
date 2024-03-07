@@ -21,7 +21,6 @@ export class PlantService {
         HttpStatus.BAD_REQUEST,
       );
     }
-
     const { userId, spotId, ...newPlantData } = { ...createPlantDto };
     try {
       const { identifiers } = await this.plantRepository

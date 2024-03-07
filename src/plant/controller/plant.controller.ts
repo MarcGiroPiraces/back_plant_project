@@ -3,13 +3,16 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   Param,
   ParseIntPipe,
   Post,
   Query,
+  Req,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
+import { CustomRequest } from '../../CustomRequest';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ZodValidationPipe } from '../../pipes/ZodValidation.pipe';
 import { CreatePlantDto, createPlantDtoSchema } from '../dto/create-plant.dto';
@@ -22,7 +25,10 @@ export class PlantController {
   @UseGuards(JwtAuthGuard)
   @Post()
   @UsePipes(new ZodValidationPipe(createPlantDtoSchema))
-  create(@Body() createPlantDto: CreatePlantDto) {
+  create(@Body() createPlantDto: CreatePlantDto, @Req() req: CustomRequest) {
+    if (createPlantDto.userId !== req.user.id) {
+      throw new HttpException('You can only create plants for your user.', 403);
+    }
     return this.plantService.create(createPlantDto);
   }
 
