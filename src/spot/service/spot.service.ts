@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateSpotDto, CreateSpotSchema } from '../dto/create-spot.dto';
+import { CreateSpotDto } from '../dto/create-spot.dto';
 import { Spot } from '../entities/spot.entity';
 
 @Injectable()
@@ -10,12 +10,6 @@ export class SpotService {
     @InjectRepository(Spot) private spotRepository: Repository<Spot>,
   ) {}
   async create(createSpotDto: CreateSpotDto) {
-    try {
-      CreateSpotSchema.parse(createSpotDto);
-    } catch (error) {
-      throw new HttpException('Invalid data provided.', HttpStatus.BAD_REQUEST);
-    }
-
     const isSpotRegistred = await this.spotRepository
       .createQueryBuilder('spot')
       .where('spot.room = :room', { room: createSpotDto.room })

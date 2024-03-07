@@ -1,10 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  CreateWateringDto,
-  createWateringSchema,
-} from '../dto/create-watering.dto';
+import { CreateWateringDto } from '../dto/create-watering.dto';
 import { Watering } from '../entities/watering.entity';
 
 @Injectable()
@@ -14,11 +11,6 @@ export class WateringService {
     private wateringRepository: Repository<Watering>,
   ) {}
   async create(createWateringDto: CreateWateringDto) {
-    try {
-      createWateringSchema.parse(createWateringDto);
-    } catch (error) {
-      throw new HttpException('Invalid data provided.', HttpStatus.BAD_REQUEST);
-    }
     createWateringDto.date = new Date(createWateringDto.date);
 
     const isWateringRegistered = await this.wateringRepository

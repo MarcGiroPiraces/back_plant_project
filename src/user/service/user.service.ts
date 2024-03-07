@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserDto, createUserSchema } from '../dto/create-user.dto';
+import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { User } from '../entities/user.entity';
 
@@ -12,12 +12,6 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    try {
-      createUserSchema.parse(createUserDto);
-    } catch (error) {
-      throw new HttpException('Invalid data provided.', HttpStatus.BAD_REQUEST);
-    }
-
     const isEmailRegistered = await this.findOneByEmailRepo(
       createUserDto.email,
     );

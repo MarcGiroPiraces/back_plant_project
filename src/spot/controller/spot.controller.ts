@@ -4,12 +4,15 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Query,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { CreateSpotDto } from '../dto/create-spot.dto';
+import { ZodValidationPipe } from '../../pipes/ZodValidation.pipe';
+import { CreateSpotDto, createSpotDtoSchema } from '../dto/create-spot.dto';
 import { SpotService } from '../service/spot.service';
 
 @Controller('spot')
@@ -18,6 +21,7 @@ export class SpotController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
+  @UsePipes(new ZodValidationPipe(createSpotDtoSchema))
   create(@Body() createSpotDto: CreateSpotDto) {
     return this.spotService.create(createSpotDto);
   }
@@ -30,13 +34,13 @@ export class SpotController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseIntPipe()) id: string) {
     return this.spotService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseIntPipe()) id: string) {
     return this.spotService.remove(+id);
   }
 }
