@@ -29,7 +29,12 @@ export class UserController {
 
   @Post()
   @UsePipes(new ZodValidationPipe(createUserSchema))
-  create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto) {
+    const password = await this.authService.hashPassword(
+      createUserDto.password,
+    );
+    createUserDto.password = password;
+
     return this.userService.create(createUserDto);
   }
 
