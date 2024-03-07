@@ -1,15 +1,14 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { AppController } from './app.controller';
+import { AppContextMiddleware } from './app-context.middleware';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { PlantModule } from './plant/plant.module';
 import { SpotModule } from './spot/spot.module';
+import { TransplantingModule } from './transplanting/transplanting.module';
 import { UserModule } from './user/user.module';
 import { WateringModule } from './watering/watering.module';
-import { TransplantingModule } from './transplanting/transplanting.module';
-import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -29,9 +28,10 @@ import { AuthModule } from './auth/auth.module';
     TransplantingModule,
     AuthModule,
   ],
-  controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {
-  constructor(private dataSource: DataSource) {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AppContextMiddleware).forRoutes('*');
+  }
 }
