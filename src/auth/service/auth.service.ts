@@ -13,15 +13,17 @@ export class AuthService {
 
   async validateUser(email: string, password: string) {
     const user = await this.usersService.findOneByEmailRepo(email);
-    const isPasswordMatching = await this.comparePassword(
-      password,
-      user.password,
-    );
-    if (user && isPasswordMatching) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = user;
+    if (user) {
+      const isPasswordMatching = await this.comparePassword(
+        password,
+        user.password,
+      );
+      if (isPasswordMatching) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, ...result } = user;
 
-      return result;
+        return result;
+      }
     }
     return null;
   }
