@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateTransplantingDto } from '../dto/create-transplanting.dto';
+import { FindAllTransplantingsDto } from '../dto/find-all-transplantings.dto';
 import { Transplanting } from '../entities/transplanting.entity';
 
 @Injectable()
@@ -29,7 +30,9 @@ export class TransplantingService {
     return newTransplantingId;
   }
 
-  async findAll(plantId: number | undefined) {
+  async findAll(filters: FindAllTransplantingsDto) {
+    const plantId = filters.plantId ? filters.plantId : null;
+
     try {
       const baseQuery = this.repository
         .createQueryBuilder('transplanting')

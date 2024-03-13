@@ -34,8 +34,13 @@ export class PlantController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Query('userId', new ParseIntPipe()) userId: number) {
-    return this.plantService.findAll(userId);
+  findAll(@Query('userId') userId: string, @Query('spotId') spotId: string) {
+    const filters = {
+      userId: userId ? +userId : null,
+      spotId: spotId ? +spotId : null,
+    };
+
+    return this.plantService.findAll(filters);
   }
 
   @UseGuards(JwtAuthGuard)

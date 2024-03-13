@@ -31,8 +31,11 @@ export class TransplantingController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Query('plantId', new ParseIntPipe()) plantId: string) {
-    return this.transplantingService.findAll(+plantId);
+  findAll(@Query('plantId') plantId: string) {
+    const filters = {
+      plantId: plantId ? +plantId : null,
+    };
+    return this.transplantingService.findAll(filters);
   }
 
   @UseGuards(JwtAuthGuard)
