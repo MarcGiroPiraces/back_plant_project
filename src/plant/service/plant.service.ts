@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { FindAllPlantsDto } from 'src/plant/dto/find-all-plants.dto';
 import { Repository } from 'typeorm';
 import { CreatePlantDto } from '../dto/create-plant.dto';
 import { Plant } from '../entities/plant.entity';
@@ -53,7 +54,9 @@ export class PlantService {
     }
   }
 
-  async findAll(userId: number) {
+  async findAll(filters: FindAllPlantsDto) {
+    const userId = filters.userId ? filters.userId : null;
+    const spotId = filters.spotId ? filters.spotId : null;
     try {
       const plantsQuery = this.plantRepository
         .createQueryBuilder('plant')
@@ -62,9 +65,10 @@ export class PlantService {
         .leftJoinAndSelect('plant.transplantings', 'transplantings')
         .leftJoinAndSelect('plant.spot', 'spot');
       if (userId) {
-        return await plantsQuery
-          .where('plant.userId = :userId', { userId })
-          .getMany();
+        plantsQuery.where('plant.userId = :userId', { userId }).getMany();
+      }
+      if (spotId) {
+        plantsQuery.where('plant.spotId = :spotId', { spotId }).getMany();
       }
 
       return await plantsQuery.getMany();

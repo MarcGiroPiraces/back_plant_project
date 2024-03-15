@@ -35,7 +35,7 @@ export class PlantController {
   @Get()
   findAll(@Req() req: CustomRequest) {
     const userId = req.user.id;
-    return this.plantService.findAll(userId);
+    return this.plantService.findAll({ userId });
   }
 
   @UseGuards(JwtAuthGuard)
