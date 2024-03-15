@@ -9,7 +9,9 @@ export class PlantService {
   constructor(
     @InjectRepository(Plant) private plantRepository: Repository<Plant>,
   ) {}
-  async create(createPlantDto: CreatePlantDto): Promise<number> {
+  async create(
+    createPlantDto: CreatePlantDto & { userId: number },
+  ): Promise<number> {
     const isPlantNameRegistered = await this.plantRepository
       .createQueryBuilder('plant')
       .where('plant.name = :name', { name: createPlantDto.name })
@@ -21,6 +23,7 @@ export class PlantService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
     const { userId, spotId, ...newPlantData } = { ...createPlantDto };
     try {
       const { identifiers } = await this.plantRepository

@@ -4,7 +4,6 @@ export const createSpotDtoSchema = z
   .object({
     room: z.string(),
     place: z.string(),
-    userId: z.number(),
   })
   .required();
 

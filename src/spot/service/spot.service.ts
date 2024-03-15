@@ -9,7 +9,7 @@ export class SpotService {
   constructor(
     @InjectRepository(Spot) private spotRepository: Repository<Spot>,
   ) {}
-  async create(createSpotDto: CreateSpotDto) {
+  async create(createSpotDto: CreateSpotDto & { userId: number }) {
     const isSpotRegistred = await this.spotRepository
       .createQueryBuilder('spot')
       .where('spot.room = :room', { room: createSpotDto.room })

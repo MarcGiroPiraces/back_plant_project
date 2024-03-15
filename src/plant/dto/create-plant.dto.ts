@@ -4,9 +4,9 @@ export const createPlantDtoSchema = z
   .object({
     name: z.string(),
     description: z.string(),
-    atHomeSince: z.date(),
-    userId: z.number(),
+    atHomeSince: z.string(),
     spotId: z.number(),
+    //S userId: z.number().optional(),
   })
   .required();
 

@@ -3,11 +3,9 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   Param,
   ParseIntPipe,
   Post,
-  Query,
   Req,
   UseGuards,
   UsePipes,
@@ -25,16 +23,18 @@ export class PlantController {
   @UseGuards(JwtAuthGuard)
   @Post()
   @UsePipes(new ZodValidationPipe(createPlantDtoSchema))
-  create(@Body() createPlantDto: CreatePlantDto, @Req() req: CustomRequest) {
-    if (createPlantDto.userId !== req.user.id) {
-      throw new HttpException('You can only create plants for your user.', 403);
-    }
+  create(
+    @Body() createPlantDto: CreatePlantDto & { userId: number },
+    @Req() req: CustomRequest,
+  ) {
+    createPlantDto.userId = req.user.id;
     return this.plantService.create(createPlantDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Query('userId', new ParseIntPipe()) userId: number) {
+  findAll(@Req() req: CustomRequest) {
+    const userId = req.user.id;
     return this.plantService.findAll(userId);
   }
 
