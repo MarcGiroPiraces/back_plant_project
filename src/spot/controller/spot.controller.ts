@@ -6,7 +6,6 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Query,
   Req,
   UseGuards,
   UsePipes,
@@ -31,8 +30,9 @@ export class SpotController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Query('userId') userId: number) {
-    return this.spotService.findAll(userId ? Number(userId) : undefined);
+  findAll(@Req() req: CustomRequest) {
+    const userId = req.user.id;
+    return this.spotService.findAll(userId);
   }
 
   @UseGuards(JwtAuthGuard)
