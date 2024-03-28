@@ -1,20 +1,18 @@
-import { z } from 'zod';
+import { Transform } from 'class-transformer';
+import { IsOptional, IsPositive } from 'class-validator';
 
-export const findAllPlantsSchema = z
-  .object({
-    userId: z
-      .string()
-      .min(1)
-      .max(255)
-      .optional()
-      .transform((value) => parseInt(value)),
-    spotId: z
-      .string()
-      .min(1)
-      .max(255)
-      .optional()
-      .transform((value) => parseInt(value)),
-  })
-  .required();
+export class FindAllPlantsDto {
+  @IsOptional()
+  @IsPositive()
+  userId: number;
 
-export type FindAllPlantsDto = z.infer<typeof findAllPlantsSchema>;
+  @IsOptional()
+  @IsPositive()
+  spotId: number;
+}
+
+export class FindAllPlantsParams {
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value))
+  spotId: number;
+}

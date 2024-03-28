@@ -11,7 +11,7 @@ export class WateringService {
     private wateringRepository: Repository<Watering>,
   ) {}
   async create(createWateringDto: CreateWateringDto) {
-    createWateringDto.date = new Date(createWateringDto.date);
+    createWateringDto.date = new Date(createWateringDto.date).toISOString();
 
     const isWateringRegistered = await this.wateringRepository
       .createQueryBuilder('watering')

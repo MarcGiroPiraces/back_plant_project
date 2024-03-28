@@ -1,15 +1,18 @@
-import { z } from 'zod';
+import { IsBoolean, IsNumber, IsString } from 'class-validator';
 
-export const createTransplantingDtoSchema = z
-  .object({
-    date: z.date(),
-    plantId: z.number(),
-    potUpsize: z.boolean(),
-    soilChange: z.boolean(),
-    soilMix: z.string(),
-  })
-  .required();
+export class CreateTransplantingDto {
+  @IsString()
+  date: string;
 
-export type CreateTransplantingDto = z.infer<
-  typeof createTransplantingDtoSchema
->;
+  @IsNumber()
+  plantId: number;
+
+  @IsBoolean()
+  potUpsize: boolean;
+
+  @IsBoolean()
+  soilChange: boolean;
+
+  @IsString()
+  soilMix: string;
+}

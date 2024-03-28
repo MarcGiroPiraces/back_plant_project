@@ -1,13 +1,20 @@
-import { z } from 'zod';
+import { IsNumber, IsString } from 'class-validator';
 
-export const createPlantDtoSchema = z
-  .object({
-    name: z.string(),
-    description: z.string(),
-    atHomeSince: z.string(),
-    spotId: z.number(),
-    //S userId: z.number().optional(),
-  })
-  .required();
+export class CreatePlantDto {
+  @IsString()
+  name: string;
 
-export type CreatePlantDto = z.infer<typeof createPlantDtoSchema>;
+  @IsString()
+  description: string;
+
+  @IsString()
+  atHomeSince: string;
+
+  @IsNumber()
+  spot: number;
+}
+
+export class CreatePlant extends CreatePlantDto {
+  @IsNumber()
+  user: number;
+}

@@ -9,15 +9,13 @@ import {
   Post,
   Req,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CustomRequest } from '../../CustomRequest';
 import { LocalAuthGuard } from '../../auth/guards/local-auth.guard';
 import { AuthService } from '../../auth/service/auth.service';
-import { ZodValidationPipe } from '../../pipes/ZodValidation.pipe';
-import { CreateUserDto, createUserSchema } from '../dto/create-user.dto';
-import { UpdateUserDto, updateUserSchema } from '../dto/update-user.dto';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserService } from '../service/user.service';
 
 @Controller('user')
@@ -28,7 +26,6 @@ export class UserController {
   ) {}
 
   @Post()
-  @UsePipes(new ZodValidationPipe(createUserSchema))
   async create(@Body() createUserDto: CreateUserDto) {
     const password = await this.authService.hashPassword(
       createUserDto.password,
@@ -52,23 +49,22 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id', new ParseIntPipe()) id: string) {
-    return this.userService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  @UsePipes(new ZodValidationPipe(updateUserSchema))
   update(
-    @Param('id', new ParseIntPipe()) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.userService.update(+id, updateUserDto);
+    return this.userService.update(id, updateUserDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id', new ParseIntPipe()) id: string) {
-    return this.userService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.remove(id);
   }
 }

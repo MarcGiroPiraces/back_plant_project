@@ -1,10 +1,9 @@
-import { z } from 'zod';
+import { IsString } from 'class-validator';
 
-export const createSpotDtoSchema = z
-  .object({
-    room: z.string(),
-    place: z.string(),
-  })
-  .required();
+export class CreateSpotDto {
+  @IsString()
+  room: string;
 
-export type CreateSpotDto = z.infer<typeof createSpotDtoSchema>;
+  @IsString()
+  place: string;
+}

@@ -1,9 +1,12 @@
-import { z } from 'zod';
+import { IsBoolean, IsNumber, IsString } from 'class-validator';
 
-export const createWateringDtoSchema = z.object({
-  date: z.string() || z.date(),
-  fertilizer: z.boolean(),
-  plantId: z.number(),
-});
+export class CreateWateringDto {
+  @IsString()
+  date: string;
 
-export type CreateWateringDto = z.infer<typeof createWateringDtoSchema>;
+  @IsBoolean()
+  fertilizer: boolean;
+
+  @IsNumber()
+  plantId: number;
+}

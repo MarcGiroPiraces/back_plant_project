@@ -12,7 +12,9 @@ export class TransplantingService {
     private repository: Repository<Transplanting>,
   ) {}
   async create(createTransplantingDto: CreateTransplantingDto) {
-    createTransplantingDto.date = new Date(createTransplantingDto.date);
+    createTransplantingDto.date = new Date(
+      createTransplantingDto.date,
+    ).toISOString();
     const { identifiers } = await this.repository
       .createQueryBuilder()
       .insert()

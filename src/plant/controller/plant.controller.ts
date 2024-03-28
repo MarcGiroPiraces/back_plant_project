@@ -5,15 +5,17 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
+  Query,
   Req,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { CustomRequest } from '../../CustomRequest';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { ZodValidationPipe } from '../../pipes/ZodValidation.pipe';
-import { CreatePlantDto, createPlantDtoSchema } from '../dto/create-plant.dto';
+import { CreatePlantDto } from '../dto/create-plant.dto';
+import { FindAllPlantsParams } from '../dto/find-all-plants.dto';
+import { UpdatePlantDto } from '../dto/update-plant.dto';
 import { PlantService } from '../service/plant.service';
 
 @Controller('plant')
@@ -22,31 +24,45 @@ export class PlantController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @UsePipes(new ZodValidationPipe(createPlantDtoSchema))
-  create(
-    @Body() createPlantDto: CreatePlantDto & { userId: number },
+  create(@Body() createPlantDto: CreatePlantDto, @Req() req: CustomRequest) {
+    const user = req.user.id;
+    const plantData = { ...createPlantDto, user };
+
+    return this.plantService.create(plantData);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  update(
+    @Body() updatePlantDto: UpdatePlantDto,
+    @Param('id', ParseIntPipe) id: number,
     @Req() req: CustomRequest,
   ) {
-    createPlantDto.userId = req.user.id;
-    return this.plantService.create(createPlantDto);
+    const user = req.user.id;
+    const plantData = { ...updatePlantDto, id, user };
+
+    return this.plantService.update(plantData);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Req() req: CustomRequest) {
+  findAll(@Req() req: CustomRequest, @Query() { spotId }: FindAllPlantsParams) {
     const userId = req.user.id;
-    return this.plantService.findAll({ userId });
+    const filters = { userId, spotId };
+    console.log('filters', filters);
+
+    return this.plantService.findAll(filters);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id', new ParseIntPipe()) id: string) {
-    return this.plantService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.plantService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id', new ParseIntPipe()) id: string) {
-    return this.plantService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.plantService.remove(id);
   }
 }

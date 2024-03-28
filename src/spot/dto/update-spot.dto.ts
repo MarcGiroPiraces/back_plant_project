@@ -1,6 +1,4 @@
-import { z } from 'zod';
-import { createSpotDtoSchema } from './create-spot.dto';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreatePlantDto } from '../../plant/dto/create-plant.dto';
 
-export const updateSpotDtoSchema = createSpotDtoSchema.partial();
-
-export type UpdateSpotDto = z.infer<typeof updateSpotDtoSchema>;
+export class UpdateSpotDto extends PartialType(CreatePlantDto) {}

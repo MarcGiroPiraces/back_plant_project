@@ -2,7 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindAllPlantsDto } from 'src/plant/dto/find-all-plants.dto';
 import { Repository } from 'typeorm';
-import { CreatePlantDto } from '../dto/create-plant.dto';
+import { CreatePlant } from '../dto/create-plant.dto';
+import { UpdatePlantWithUserId } from '../dto/update-plant.dto';
 import { Plant } from '../entities/plant.entity';
 
 @Injectable()
@@ -10,13 +11,11 @@ export class PlantService {
   constructor(
     @InjectRepository(Plant) private plantRepository: Repository<Plant>,
   ) {}
-  async create(
-    createPlantDto: CreatePlantDto & { userId: number },
-  ): Promise<number> {
+  async create(plantData: CreatePlant): Promise<number> {
     const isPlantNameRegistered = await this.plantRepository
       .createQueryBuilder('plant')
-      .where('plant.name = :name', { name: createPlantDto.name })
-      .andWhere('plant.user = :userId', { userId: createPlantDto.userId })
+      .where('plant.name = :name', { name: plantData.name })
+      .andWhere('plant.user = :userId', { userId: plantData.user })
       .getOne();
     if (isPlantNameRegistered) {
       throw new HttpException(
@@ -25,7 +24,7 @@ export class PlantService {
       );
     }
 
-    const { userId, spotId, ...newPlantData } = { ...createPlantDto };
+    const { user, spot, ...newPlantData } = { ...plantData };
     try {
       const { identifiers } = await this.plantRepository
         .createQueryBuilder()
@@ -38,17 +37,48 @@ export class PlantService {
         .createQueryBuilder('plant')
         .relation(Plant, 'user')
         .of(newPlantId)
-        .set(userId);
+        .set(user);
       await this.plantRepository
         .createQueryBuilder('plant')
         .relation(Plant, 'spot')
         .of(newPlantId)
-        .set(spotId);
+        .set(spot);
 
       return newPlantId;
     } catch (error) {
       throw new HttpException(
         'Error creating the plant.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async update(plantData: UpdatePlantWithUserId) {
+    const plant = await this.plantRepository
+      .createQueryBuilder('plant')
+      .where('plant.id = :id', { id: plantData.id })
+      .andWhere('plant.user = :userId', { userId: plantData.user })
+      .getOne();
+    if (!plant) {
+      throw new HttpException(
+        `Plant with id ${plantData.id} not found.`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const updatedPlant = Object.assign(plant, plantData);
+
+    try {
+      await this.plantRepository
+        .createQueryBuilder()
+        .update(Plant)
+        .set({ ...updatedPlant })
+        .where('id = :id', { id: updatedPlant.id })
+        .execute();
+
+      return updatedPlant.id;
+    } catch (error) {
+      throw new HttpException(
+        'Error updating the plant.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
