@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateTransplantingDto } from '../dto/create-transplanting.dto';
+import { FindAllTransplantingsParams } from '../dto/find-all-transplantings.dto';
 import { TransplantingService } from '../service/transplanting.service';
 
 @Controller('transplanting')
@@ -25,7 +26,7 @@ export class TransplantingController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Query('plantId', ParseIntPipe) plantId: number) {
+  findAll(@Query() { plantId }: FindAllTransplantingsParams) {
     const filters = {
       plantId: plantId ? plantId : null,
     };

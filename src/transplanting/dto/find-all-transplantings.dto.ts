@@ -1,16 +1,7 @@
-import { z } from 'zod';
+import { IsOptional, IsPositive } from 'class-validator';
 
-export const findAllTransplantingsSchema = z
-  .object({
-    plantId: z
-      .string()
-      .min(1)
-      .max(255)
-      .optional()
-      .transform((value) => parseInt(value)),
-  })
-  .required();
-
-export type FindAllTransplantingsDto = z.infer<
-  typeof findAllTransplantingsSchema
->;
+export class FindAllTransplantingsParams {
+  @IsOptional()
+  @IsPositive()
+  plantId: number;
+}
