@@ -12,14 +12,14 @@ export class TransplantingService {
     private repository: Repository<Transplanting>,
   ) {}
   async create(createTransplantingDto: CreateTransplantingDto) {
-    createTransplantingDto.date = new Date(
-      createTransplantingDto.date,
-    ).toISOString();
     const { identifiers } = await this.repository
       .createQueryBuilder()
       .insert()
       .into(Transplanting)
-      .values(createTransplantingDto)
+      .values({
+        ...createTransplantingDto,
+        date: new Date(createTransplantingDto.date),
+      })
       .execute();
 
     const newTransplantingId = identifiers[0].id as number;
@@ -36,15 +36,15 @@ export class TransplantingService {
     const plantId = filters.plantId ? filters.plantId : null;
 
     try {
-      const baseQuery = this.repository
+      let query = this.repository
         .createQueryBuilder('transplanting')
         .innerJoinAndSelect('transplanting.plant', 'plant');
 
       if (plantId) {
-        baseQuery.where('plant.id = :plantId', { plantId });
+        query = query.where('plant.id = :plantId', { plantId });
       }
 
-      return await baseQuery.orderBy('transplanting.date', 'DESC').getMany();
+      return await query.orderBy('transplanting.date', 'DESC').getMany();
     } catch (error) {
       throw new HttpException(
         'Error while fetching transplanting.',

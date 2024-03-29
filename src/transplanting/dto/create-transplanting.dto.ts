@@ -1,10 +1,10 @@
-import { IsBoolean, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsPositive, IsRFC3339, IsString } from 'class-validator';
 
 export class CreateTransplantingDto {
-  @IsString()
+  @IsRFC3339()
   date: string;
 
-  @IsNumber()
+  @IsPositive()
   plantId: number;
 
   @IsBoolean()

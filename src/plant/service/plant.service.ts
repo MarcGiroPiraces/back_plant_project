@@ -87,21 +87,22 @@ export class PlantService {
   async findAll(filters: FindAllPlantsDto) {
     const userId = filters.userId ? filters.userId : null;
     const spotId = filters.spotId ? filters.spotId : null;
+
     try {
-      const plantsQuery = this.plantRepository
+      let query = this.plantRepository
         .createQueryBuilder('plant')
         .leftJoinAndSelect('plant.user', 'user')
         .leftJoinAndSelect('plant.waterings', 'waterings')
         .leftJoinAndSelect('plant.transplantings', 'transplantings')
         .leftJoinAndSelect('plant.spot', 'spot');
       if (userId) {
-        plantsQuery.where('plant.userId = :userId', { userId }).getMany();
+        query = query.where('plant.userId = :userId', { userId });
       }
       if (spotId) {
-        plantsQuery.where('plant.spotId = :spotId', { spotId }).getMany();
+        query = query.where('plant.spotId = :spotId', { spotId });
       }
 
-      return await plantsQuery.getMany();
+      return await query.getMany();
     } catch (error) {
       throw new HttpException(
         'Error getting all plants.',

@@ -49,16 +49,16 @@ export class SpotService {
 
   async findAll(userId: number) {
     try {
-      let baseQuery = this.spotRepository
+      let query = this.spotRepository
         .createQueryBuilder('spot')
         .leftJoinAndSelect('spot.user', 'user')
         .leftJoinAndSelect('spot.plants', 'plants');
 
       if (userId) {
-        baseQuery = baseQuery.where('spot.user = :userId', { userId });
+        query = query.where('spot.user = :userId', { userId });
       }
 
-      return await baseQuery.getMany();
+      return await query.getMany();
     } catch (error) {
       throw new HttpException(
         'Error getting all spots.',

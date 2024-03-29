@@ -10,6 +10,5 @@ export class UpdatePlant extends UpdatePlantDto {
 }
 
 export class UpdatePlantWithUserId extends UpdatePlant {
-  @IsNumber()
   user: number;
 }

@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsPositive, IsRFC3339, IsString } from 'class-validator';
 
 export class CreatePlantDto {
   @IsString()
@@ -7,14 +7,13 @@ export class CreatePlantDto {
   @IsString()
   description: string;
 
-  @IsString()
+  @IsRFC3339()
   atHomeSince: string;
 
-  @IsNumber()
+  @IsPositive()
   spot: number;
 }
 
 export class CreatePlant extends CreatePlantDto {
-  @IsNumber()
   user: number;
 }

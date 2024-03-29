@@ -1,12 +1,12 @@
-import { IsBoolean, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsPositive, IsRFC3339 } from 'class-validator';
 
 export class CreateWateringDto {
-  @IsString()
+  @IsRFC3339()
   date: string;
 
   @IsBoolean()
   fertilizer: boolean;
 
-  @IsNumber()
+  @IsPositive()
   plantId: number;
 }

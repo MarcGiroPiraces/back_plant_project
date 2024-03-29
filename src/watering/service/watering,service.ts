@@ -11,11 +11,11 @@ export class WateringService {
     private wateringRepository: Repository<Watering>,
   ) {}
   async create(createWateringDto: CreateWateringDto) {
-    createWateringDto.date = new Date(createWateringDto.date).toISOString();
-
     const isWateringRegistered = await this.wateringRepository
       .createQueryBuilder('watering')
-      .where('watering.date = :date', { date: createWateringDto.date })
+      .where('watering.date = :date', {
+        date: new Date(createWateringDto.date),
+      })
       .andWhere('watering.plantId = :plantId', {
         plantId: createWateringDto.plantId,
       })
@@ -32,7 +32,10 @@ export class WateringService {
         .createQueryBuilder()
         .insert()
         .into(Watering)
-        .values(createWateringDto)
+        .values({
+          ...createWateringDto,
+          date: new Date(createWateringDto.date),
+        })
         .execute();
 
       const newWateringId = identifiers[0].id as number;
@@ -52,18 +55,18 @@ export class WateringService {
   }
 
   async findAll(plantId: number) {
-    let baseQuery = this.wateringRepository
+    let query = this.wateringRepository
       .createQueryBuilder('watering')
       .leftJoinAndSelect('watering.plant', 'plant');
 
     if (plantId) {
-      baseQuery = baseQuery.where('plant.id = :plantId', {
+      query = query.where('plant.id = :plantId', {
         plantId,
       });
     }
 
     try {
-      return await baseQuery.orderBy('date', 'DESC').getMany();
+      return await query.orderBy('date', 'DESC').getMany();
     } catch (error) {
       throw new HttpException(
         `Error getting all the waterings from the plant ${plantId}.`,

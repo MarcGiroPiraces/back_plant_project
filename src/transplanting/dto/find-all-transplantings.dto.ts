@@ -1,7 +1,8 @@
-import { IsOptional, IsPositive } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsOptional } from 'class-validator';
 
 export class FindAllTransplantingsParams {
   @IsOptional()
-  @IsPositive()
+  @Transform(({ value }) => parseInt(value))
   plantId: number;
 }
