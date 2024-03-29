@@ -10,5 +10,5 @@ export class UpdatePlant extends UpdatePlantDto {
 }
 
 export class UpdatePlantWithUserId extends UpdatePlant {
-  user: number;
+  userId: number;
 }

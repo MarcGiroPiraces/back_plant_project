@@ -25,8 +25,8 @@ export class PlantController {
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createPlantDto: CreatePlantDto, @Req() req: CustomRequest) {
-    const user = req.user.id;
-    const plantData = { ...createPlantDto, user };
+    const userId = req.user.id;
+    const plantData = { ...createPlantDto, userId };
 
     return this.plantService.create(plantData);
   }
@@ -38,8 +38,8 @@ export class PlantController {
     @Param('id', ParseIntPipe) id: number,
     @Req() req: CustomRequest,
   ) {
-    const user = req.user.id;
-    const plantData = { ...updatePlantDto, id, user };
+    const userId = req.user.id;
+    const plantData = { ...updatePlantDto, id, userId };
 
     return this.plantService.update(plantData);
   }

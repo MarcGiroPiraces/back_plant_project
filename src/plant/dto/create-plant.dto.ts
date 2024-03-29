@@ -11,9 +11,9 @@ export class CreatePlantDto {
   atHomeSince: string;
 
   @IsPositive()
-  spot: number;
+  spotId: number;
 }
 
 export class CreatePlant extends CreatePlantDto {
-  user: number;
+  userId: number;
 }

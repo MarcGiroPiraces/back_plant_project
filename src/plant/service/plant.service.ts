@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindAllPlantsDto } from 'src/plant/dto/find-all-plants.dto';
 import { Repository } from 'typeorm';
 import { CreatePlant } from '../dto/create-plant.dto';
+import { FindAllPlants } from '../dto/find-all-plants.dto';
 import { UpdatePlantWithUserId } from '../dto/update-plant.dto';
 import { Plant } from '../entities/plant.entity';
 
@@ -15,7 +15,7 @@ export class PlantService {
     const isPlantNameRegistered = await this.plantRepository
       .createQueryBuilder('plant')
       .where('plant.name = :name', { name: plantData.name })
-      .andWhere('plant.user = :userId', { userId: plantData.user })
+      .andWhere('plant.user = :userId', { userId: plantData.userId })
       .getOne();
     if (isPlantNameRegistered) {
       throw new HttpException(
@@ -24,7 +24,7 @@ export class PlantService {
       );
     }
 
-    const { user, spot, ...newPlantData } = { ...plantData };
+    const { userId, spotId, ...newPlantData } = { ...plantData };
     try {
       const { identifiers } = await this.plantRepository
         .createQueryBuilder()
@@ -37,12 +37,12 @@ export class PlantService {
         .createQueryBuilder('plant')
         .relation(Plant, 'user')
         .of(newPlantId)
-        .set(user);
+        .set(userId);
       await this.plantRepository
         .createQueryBuilder('plant')
         .relation(Plant, 'spot')
         .of(newPlantId)
-        .set(spot);
+        .set(spotId);
 
       return newPlantId;
     } catch (error) {
@@ -57,7 +57,7 @@ export class PlantService {
     const plant = await this.plantRepository
       .createQueryBuilder('plant')
       .where('plant.id = :id', { id: plantData.id })
-      .andWhere('plant.user = :userId', { userId: plantData.user })
+      .andWhere('plant.user = :userId', { userId: plantData.userId })
       .getOne();
     if (!plant) {
       throw new HttpException(
@@ -84,7 +84,7 @@ export class PlantService {
     }
   }
 
-  async findAll(filters: FindAllPlantsDto) {
+  async findAll(filters: FindAllPlants) {
     const userId = filters.userId ? filters.userId : null;
     const spotId = filters.spotId ? filters.spotId : null;
 
