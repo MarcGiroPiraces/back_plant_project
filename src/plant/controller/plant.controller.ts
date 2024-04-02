@@ -27,6 +27,7 @@ export class PlantController {
   create(@Body() createPlantDto: CreatePlantDto, @Req() req: CustomRequest) {
     const userId = req.user.id;
     const plantData = { ...createPlantDto, userId };
+    console.log(plantData);
 
     return this.plantService.create(plantData);
   }
@@ -49,7 +50,6 @@ export class PlantController {
   findAll(@Req() req: CustomRequest, @Query() { spotId }: FindAllPlantsParams) {
     const userId = req.user.id;
     const filters = { userId, spotId };
-    console.log('filters', filters);
 
     return this.plantService.findAll(filters);
   }

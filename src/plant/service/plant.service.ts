@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreatePlant } from '../dto/create-plant.dto';
 import { FindAllPlants } from '../dto/find-all-plants.dto';
-import { UpdatePlantWithUserId } from '../dto/update-plant.dto';
+import { UpdatePlant } from '../dto/update-plant.dto';
 import { Plant } from '../entities/plant.entity';
 
 @Injectable()
@@ -53,7 +53,7 @@ export class PlantService {
     }
   }
 
-  async update(plantData: UpdatePlantWithUserId) {
+  async update(plantData: UpdatePlant) {
     const plant = await this.plantRepository
       .createQueryBuilder('plant')
       .where('plant.id = :id', { id: plantData.id })

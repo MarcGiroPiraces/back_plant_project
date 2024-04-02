@@ -7,8 +7,6 @@ export class UpdatePlantDto extends PartialType(CreatePlantDto) {}
 export class UpdatePlant extends UpdatePlantDto {
   @IsNumber()
   id: number;
-}
 
-export class UpdatePlantWithUserId extends UpdatePlant {
   userId: number;
 }

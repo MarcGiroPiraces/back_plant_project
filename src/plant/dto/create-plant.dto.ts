@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import { IsPositive, IsRFC3339, IsString } from 'class-validator';
 
 export class CreatePlantDto {
@@ -8,6 +9,7 @@ export class CreatePlantDto {
   description: string;
 
   @IsRFC3339()
+  @Transform(({ value }) => new Date(value))
   atHomeSince: string;
 
   @IsPositive()
