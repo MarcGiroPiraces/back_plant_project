@@ -65,17 +65,20 @@ export class PlantService {
         HttpStatus.NOT_FOUND,
       );
     }
+
     const updatedPlant = Object.assign(plant, plantData);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, userId, ...updatedPlantData } = { ...updatedPlant };
 
     try {
       await this.plantRepository
         .createQueryBuilder()
         .update(Plant)
-        .set({ ...updatedPlant })
-        .where('id = :id', { id: updatedPlant.id })
+        .set({ ...updatedPlantData })
+        .where('id = :id', { id })
         .execute();
 
-      return updatedPlant.id;
+      return id;
     } catch (error) {
       throw new HttpException(
         'Error updating the plant.',

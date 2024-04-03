@@ -58,13 +58,18 @@ export class UserController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
+    @Req() req: CustomRequest,
   ) {
-    return this.userService.update(id, updateUserDto);
+    const userId = req.user.id;
+
+    return this.userService.update(id, userId, updateUserDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
+    const userId = req.user.id;
+
+    return this.userService.remove(id, userId);
   }
 }

@@ -76,7 +76,14 @@ export class UserService {
     return user || null;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async update(id: number, userId: number, updateUserDto: UpdateUserDto) {
+    if (id !== userId) {
+      throw new HttpException(
+        'You can only update your own user.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const updatedUser = await this.userRepository
       .createQueryBuilder()
       .update(User)
@@ -94,7 +101,14 @@ export class UserService {
     return updatedUser.affected === 1;
   }
 
-  async remove(id: number) {
+  async remove(id: number, userId: number) {
+    if (id !== userId) {
+      throw new HttpException(
+        'You can only delete your own user.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     try {
       const deletedUser = await this.userRepository
         .createQueryBuilder()

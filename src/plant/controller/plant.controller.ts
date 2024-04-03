@@ -42,12 +42,14 @@ export class PlantController {
     const userId = req.user.id;
     const plantData = { ...updatePlantDto, id, userId };
 
+    console.log(plantData);
+
     return this.plantService.update(plantData);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Req() req: CustomRequest, @Query() { spotId }: FindAllPlantsParams) {
+  findAll(@Query() { spotId }: FindAllPlantsParams, @Req() req: CustomRequest) {
     const userId = req.user.id;
     const filters = { userId, spotId };
 
