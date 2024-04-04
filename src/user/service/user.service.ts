@@ -83,22 +83,32 @@ export class UserService {
         HttpStatus.FORBIDDEN,
       );
     }
-
-    const updatedUser = await this.userRepository
-      .createQueryBuilder()
-      .update(User)
-      .set(updateUserDto)
+    const user = await this.userRepository
+      .createQueryBuilder('user')
       .where('id = :id', { id })
-      .execute();
-
-    if (updatedUser.affected === 0) {
+      .getOne();
+    if (!user) {
       throw new HttpException(
-        `User with ${id} not found.`,
+        `User with id ${id} not found.`,
         HttpStatus.NOT_FOUND,
       );
     }
 
-    return updatedUser.affected === 1;
+    try {
+      await this.userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set(updateUserDto)
+        .where('id = :id', { id })
+        .execute();
+
+      return id;
+    } catch (error) {
+      throw new HttpException(
+        'Error updating the user.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async remove(id: number, userId: number) {

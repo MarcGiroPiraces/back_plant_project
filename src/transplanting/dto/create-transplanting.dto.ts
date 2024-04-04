@@ -1,18 +1,26 @@
-import { IsBoolean, IsPositive, IsRFC3339, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsBoolean, IsDate, IsPositive, IsString } from 'class-validator';
 
 export class CreateTransplantingDto {
-  @IsRFC3339()
-  date: string;
+  @ApiProperty()
+  @IsDate()
+  @Transform(({ value }) => new Date(value))
+  date: Date;
 
+  @ApiProperty()
   @IsPositive()
   plantId: number;
 
+  @ApiProperty()
   @IsBoolean()
   potUpsize: boolean;
 
+  @ApiProperty()
   @IsBoolean()
   soilChange: boolean;
 
+  @ApiProperty()
   @IsString()
   soilMix: string;
 }

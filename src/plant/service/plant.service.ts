@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreatePlant } from '../dto/create-plant.dto';
 import { FindAllPlants } from '../dto/find-all-plants.dto';
-import { UpdatePlant } from '../dto/update-plant.dto';
+import { UpdatePlantDto } from '../dto/update-plant.dto';
 import { Plant } from '../entities/plant.entity';
 
 @Injectable()
@@ -53,28 +53,24 @@ export class PlantService {
     }
   }
 
-  async update(plantData: UpdatePlant) {
+  async update(id: number, userId: number, plantData: UpdatePlantDto) {
     const plant = await this.plantRepository
       .createQueryBuilder('plant')
-      .where('plant.id = :id', { id: plantData.id })
-      .andWhere('plant.user = :userId', { userId: plantData.userId })
+      .where('plant.id = :id', { id })
+      .andWhere('plant.user = :userId', { userId })
       .getOne();
     if (!plant) {
       throw new HttpException(
-        `Plant with id ${plantData.id} not found.`,
+        `Plant with id ${id} not found.`,
         HttpStatus.NOT_FOUND,
       );
     }
-
-    const updatedPlant = Object.assign(plant, plantData);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, userId, ...updatedPlantData } = { ...updatedPlant };
 
     try {
       await this.plantRepository
         .createQueryBuilder()
         .update(Plant)
-        .set({ ...updatedPlantData })
+        .set({ ...plantData })
         .where('id = :id', { id })
         .execute();
 
