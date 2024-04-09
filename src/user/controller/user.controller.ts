@@ -20,11 +20,13 @@ import {
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CustomRequest } from '../../CustomRequest';
 import { LocalAuthGuard } from '../../auth/guards/local-auth.guard';
+import { Roles } from '../../auth/roles.decorator';
 import { AuthService } from '../../auth/service/auth.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UserResponseDto } from '../dto/find-all-users.dto';
 import { LoginUserDto } from '../dto/login-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { Role } from '../entities/user.entity';
 import { UserService } from '../service/user.service';
 
 @ApiTags('Users')
@@ -75,6 +77,7 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({
