@@ -17,6 +17,10 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateWateringDto } from '../dto/create-watering.dto';
+import {
+  FindAllWateringsParams,
+  WateringResponseDto,
+} from '../dto/find-all-waterings.dto';
 import { WateringService } from '../service/watering,service';
 
 @ApiTags('Waterings')
@@ -39,8 +43,10 @@ export class WateringController {
   @Get()
   @ApiOkResponse({
     description: 'Get all waterings with filter options.',
+    type: WateringResponseDto,
+    isArray: true,
   })
-  findAll(@Query('plantId', ParseIntPipe) plantId: number) {
+  findAll(@Query() { plantId }: FindAllWateringsParams) {
     return this.wateringService.findAll(plantId);
   }
 
@@ -48,6 +54,7 @@ export class WateringController {
   @Get(':id')
   @ApiOkResponse({
     description: 'Get a specific watering by id.',
+    type: WateringResponseDto,
   })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.wateringService.findOne(id);

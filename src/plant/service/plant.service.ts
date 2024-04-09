@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreatePlant } from '../dto/create-plant.dto';
-import { FindAllPlants } from '../dto/find-all-plants.dto';
+import { CreatePlantDto } from '../dto/create-plant.dto';
+import { FindAllPlantsParams } from '../dto/find-all-plants.dto';
 import { UpdatePlantDto } from '../dto/update-plant.dto';
 import { Plant } from '../entities/plant.entity';
 
@@ -11,11 +11,11 @@ export class PlantService {
   constructor(
     @InjectRepository(Plant) private plantRepository: Repository<Plant>,
   ) {}
-  async create(plantData: CreatePlant): Promise<number> {
+  async create(userId: number, plantData: CreatePlantDto): Promise<number> {
     const isPlantNameRegistered = await this.plantRepository
       .createQueryBuilder('plant')
       .where('plant.name = :name', { name: plantData.name })
-      .andWhere('plant.user = :userId', { userId: plantData.userId })
+      .andWhere('plant.user = :userId', { userId })
       .getOne();
     if (isPlantNameRegistered) {
       throw new HttpException(
@@ -24,7 +24,7 @@ export class PlantService {
       );
     }
 
-    const { userId, spotId, ...newPlantData } = { ...plantData };
+    const { spotId, ...newPlantData } = { ...plantData };
     try {
       const { identifiers } = await this.plantRepository
         .createQueryBuilder()
@@ -83,14 +83,12 @@ export class PlantService {
     }
   }
 
-  async findAll(filters: FindAllPlants) {
-    const userId = filters.userId ? filters.userId : null;
+  async findAll(userId: number, filters: FindAllPlantsParams) {
     const spotId = filters.spotId ? filters.spotId : null;
 
     try {
       let query = this.plantRepository
         .createQueryBuilder('plant')
-        .leftJoinAndSelect('plant.user', 'user')
         .leftJoinAndSelect('plant.waterings', 'waterings')
         .leftJoinAndSelect('plant.transplantings', 'transplantings')
         .leftJoinAndSelect('plant.spot', 'spot');
@@ -114,7 +112,6 @@ export class PlantService {
     try {
       return await this.plantRepository
         .createQueryBuilder('plant')
-        .leftJoinAndSelect('plant.user', 'user')
         .leftJoinAndSelect('plant.waterings', 'waterings')
         .leftJoinAndSelect('plant.transplantings', 'transplantings')
         .where('plant.id = :id', { id })

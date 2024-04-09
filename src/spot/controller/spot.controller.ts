@@ -18,6 +18,7 @@ import {
 import { CustomRequest } from '../../CustomRequest';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateSpotDto } from '../dto/create-spot.dto';
+import { SpotResponseDto } from '../dto/find-all-spots.dto';
 import { SpotService } from '../service/spot.service';
 
 @ApiTags('Spots')
@@ -35,13 +36,15 @@ export class SpotController {
   create(@Body() createSpotDto: CreateSpotDto, @Req() req: CustomRequest) {
     const userId = req.user.id;
 
-    return this.spotService.create({ userId, ...createSpotDto });
+    return this.spotService.create(userId, createSpotDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOkResponse({
     description: 'Get all spots.',
+    type: SpotResponseDto,
+    isArray: true,
   })
   findAll(@Req() req: CustomRequest) {
     const userId = req.user.id;
@@ -53,6 +56,7 @@ export class SpotController {
   @Get(':id')
   @ApiOkResponse({
     description: 'Get a specific spot by id.',
+    type: SpotResponseDto,
   })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.spotService.findOne(id);

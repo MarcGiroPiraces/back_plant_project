@@ -3,34 +3,27 @@ import { Transform } from 'class-transformer';
 import { IsOptional } from 'class-validator';
 import { PlantWithoutDetails } from '../../plant/dto/find-all-plants.dto';
 
-export class FindAllTransplantingsParams {
+export class FindAllWateringsParams {
   @ApiPropertyOptional()
   @IsOptional()
   @Transform(({ value }) => parseInt(value))
   plantId: number;
 }
 
-export class TransplantingResponseDto {
+export class WateringResponseDto {
   @ApiProperty()
   id: number;
 
   @ApiProperty()
   date: Date;
 
+  @ApiProperty()
+  fertilizer: boolean;
+
   @ApiProperty({ type: () => PlantWithoutDetails })
   plant: PlantWithoutDetails;
-
-  @ApiProperty()
-  potUpSize: boolean;
-
-  @ApiProperty()
-  soilChange: boolean;
-
-  @ApiProperty()
-  soilMix: string;
 }
 
-export class TransplantingWithoutDetails extends OmitType(
-  TransplantingResponseDto,
-  ['plant'],
-) {}
+export class WateringWithoutDetails extends OmitType(WateringResponseDto, [
+  'plant',
+]) {}

@@ -20,7 +20,10 @@ import {
 import { CustomRequest } from '../../CustomRequest';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreatePlantDto } from '../dto/create-plant.dto';
-import { FindAllPlantsParams } from '../dto/find-all-plants.dto';
+import {
+  FindAllPlantsParams,
+  PlantResponseDto,
+} from '../dto/find-all-plants.dto';
 import { UpdatePlantDto } from '../dto/update-plant.dto';
 import { PlantService } from '../service/plant.service';
 
@@ -38,10 +41,8 @@ export class PlantController {
   })
   create(@Body() createPlantDto: CreatePlantDto, @Req() req: CustomRequest) {
     const userId = req.user.id;
-    const plantData = { ...createPlantDto, userId };
-    console.log(plantData);
 
-    return this.plantService.create(plantData);
+    return this.plantService.create(userId, createPlantDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -64,18 +65,22 @@ export class PlantController {
   @Get()
   @ApiOkResponse({
     description: 'Get all plants with filter options.',
+    type: PlantResponseDto,
+    isArray: true,
   })
   findAll(@Query() { spotId }: FindAllPlantsParams, @Req() req: CustomRequest) {
     const userId = req.user.id;
-    const filters = { userId, spotId };
+    const filters = { spotId };
 
-    return this.plantService.findAll(filters);
+    return this.plantService.findAll(userId, filters);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOkResponse({
     description: 'Get a specific plant by id.',
+    type: PlantResponseDto,
+    isArray: true,
   })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.plantService.findOne(id);

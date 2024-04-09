@@ -22,6 +22,7 @@ import { CustomRequest } from '../../CustomRequest';
 import { LocalAuthGuard } from '../../auth/guards/local-auth.guard';
 import { AuthService } from '../../auth/service/auth.service';
 import { CreateUserDto } from '../dto/create-user.dto';
+import { UserResponseDto } from '../dto/find-all-users.dto';
 import { LoginUserDto } from '../dto/login-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserService } from '../service/user.service';
@@ -78,6 +79,8 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOkResponse({
     description: 'Get all users.',
+    type: UserResponseDto,
+    isArray: true,
   })
   findAll() {
     return this.userService.findAll();
@@ -88,6 +91,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOkResponse({
     description: 'Get a specific user by id.',
+    type: UserResponseDto,
   })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.userService.findOne(id);

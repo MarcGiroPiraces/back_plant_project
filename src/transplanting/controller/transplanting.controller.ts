@@ -17,7 +17,10 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateTransplantingDto } from '../dto/create-transplanting.dto';
-import { FindAllTransplantingsParams } from '../dto/find-all-transplantings.dto';
+import {
+  FindAllTransplantingsParams,
+  TransplantingResponseDto,
+} from '../dto/find-all-transplantings.dto';
 import { TransplantingService } from '../service/transplanting.service';
 
 @ApiTags('Transplantings')
@@ -40,10 +43,12 @@ export class TransplantingController {
   @Get()
   @ApiOkResponse({
     description: 'Get all transplantings with filter options.',
+    type: TransplantingResponseDto,
+    isArray: true,
   })
   findAll(@Query() { plantId }: FindAllTransplantingsParams) {
     const filters = {
-      plantId: plantId ? plantId : null,
+      plantId,
     };
 
     return this.transplantingService.findAll(filters);

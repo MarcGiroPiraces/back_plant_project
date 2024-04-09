@@ -37,11 +37,7 @@ export class UserService {
 
   async findAll() {
     try {
-      return await this.userRepository
-        .createQueryBuilder('user')
-        .leftJoinAndSelect('user.plants', 'plant')
-        .leftJoinAndSelect('plant.spot', 'spot')
-        .getMany();
+      return await this.userRepository.createQueryBuilder('user').getMany();
     } catch (error) {
       throw new HttpException(
         'Error getting all users.',
@@ -53,7 +49,6 @@ export class UserService {
   async findOne(id: number) {
     const user = await this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.plants', 'plant')
       .where('user.id = :id', { id })
       .getOne();
     if (!user) {

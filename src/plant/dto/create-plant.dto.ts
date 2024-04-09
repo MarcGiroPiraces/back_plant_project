@@ -20,7 +20,3 @@ export class CreatePlantDto {
   @IsPositive()
   spotId: number;
 }
-
-export class CreatePlant extends CreatePlantDto {
-  userId: number;
-}

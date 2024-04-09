@@ -9,11 +9,11 @@ export class SpotService {
   constructor(
     @InjectRepository(Spot) private spotRepository: Repository<Spot>,
   ) {}
-  async create(createSpotDto: CreateSpotDto & { userId: number }) {
+  async create(userId: number, createSpotDto: CreateSpotDto) {
     const isSpotRegistred = await this.spotRepository
       .createQueryBuilder('spot')
       .where('spot.room = :room', { room: createSpotDto.room })
-      .andWhere('spot.user = :userId', { userId: createSpotDto.userId })
+      .andWhere('spot.user = :userId', { userId })
       .andWhere('spot.place = :place', { place: createSpotDto.place })
       .getOne();
     if (isSpotRegistred) {
@@ -23,13 +23,12 @@ export class SpotService {
       );
     }
 
-    const { userId, ...newSpotData } = { ...createSpotDto };
     try {
       const { identifiers } = await this.spotRepository
         .createQueryBuilder()
         .insert()
         .into(Spot)
-        .values({ ...newSpotData })
+        .values({ ...createSpotDto })
         .execute();
       const newSpotId = identifiers[0].id as number;
       await this.spotRepository
