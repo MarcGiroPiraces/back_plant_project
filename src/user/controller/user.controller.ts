@@ -20,6 +20,7 @@ import {
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CustomRequest } from '../../CustomRequest';
 import { LocalAuthGuard } from '../../auth/guards/local-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/roles.decorator';
 import { AuthService } from '../../auth/service/auth.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -76,7 +77,7 @@ export class UserController {
     return this.userService.update(id, userId, updateUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get()
   @ApiBearerAuth()
