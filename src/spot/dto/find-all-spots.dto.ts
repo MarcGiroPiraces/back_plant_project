@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { PlantWithoutDetails } from '../../plant/dto/find-all-plants.dto';
 import { UserResponseDto } from '../../user/dto/find-all-users.dto';
 
@@ -18,3 +18,8 @@ export class SpotResponseDto {
   @ApiProperty()
   user: UserResponseDto;
 }
+
+export class SpotWithoutDetails extends OmitType(SpotResponseDto, [
+  'plants',
+  'user',
+]) {}

@@ -56,9 +56,9 @@ export class PlantController {
     @Body() updatePlantDto: UpdatePlantDto,
     @Req() req: CustomRequest,
   ) {
-    const userId = req.user.id;
+    const user = req.user;
 
-    return this.plantService.update(id, userId, updatePlantDto);
+    return this.plantService.update(id, user, updatePlantDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -68,31 +68,34 @@ export class PlantController {
     type: PlantResponseDto,
     isArray: true,
   })
-  findAll(@Query() { spotId }: FindAllPlantsParams, @Req() req: CustomRequest) {
-    const userId = req.user.id;
-    const filters = { spotId };
+  findAll(@Query() filters: FindAllPlantsParams, @Req() req: CustomRequest) {
+    const user = req.user;
 
-    return this.plantService.findAll(userId, filters);
+    return this.plantService.findAll(user, filters);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOkResponse({
-    description: 'Get a specific plant by id.',
+    description: 'Get a plant by id.',
     type: PlantResponseDto,
     isArray: true,
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.plantService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
+    const user = req.user;
+
+    return this.plantService.findOne(id, user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOkResponse({
-    description: 'Delete a specific plant by id.',
+    description: 'Delete a plant by id.',
     type: Boolean,
   })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.plantService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
+    const user = req.user;
+
+    return this.plantService.remove(id, user);
   }
 }

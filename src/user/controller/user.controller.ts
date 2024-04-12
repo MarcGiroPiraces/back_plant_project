@@ -72,9 +72,9 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
     @Req() req: CustomRequest,
   ) {
-    const userId = req.user.id;
+    const user = req.user;
 
-    return this.userService.update(id, userId, updateUserDto);
+    return this.userService.update(id, user, updateUserDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -94,23 +94,25 @@ export class UserController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({
-    description: 'Get a specific user by id.',
+    description: 'Get a user by id.',
     type: UserResponseDto,
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
+    const user = req.user;
+
+    return this.userService.findOne(id, user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiBearerAuth()
   @ApiOkResponse({
-    description: 'Delete a specific user by id.',
+    description: 'Delete a user by id.',
     type: Boolean,
   })
   remove(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
-    const userId = req.user.id;
+    const user = req.user;
 
-    return this.userService.remove(id, userId);
+    return this.userService.remove(id, user);
   }
 }

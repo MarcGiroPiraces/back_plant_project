@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional } from 'class-validator';
-import { SpotResponseDto } from '../../spot/dto/find-all-spots.dto';
+import { SpotWithoutDetails } from '../../spot/dto/find-all-spots.dto';
 import { TransplantingWithoutDetails } from '../../transplanting/dto/find-all-transplantings.dto';
 import { WateringWithoutDetails } from '../../watering/dto/find-all-waterings.dto';
 
@@ -11,11 +11,13 @@ export class FindAllPlantsParams {
   @IsNumber()
   @Transform(({ value }) => parseInt(value))
   spotId: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value))
+  userId: number;
 }
-class SpotWithoutDetails extends OmitType(SpotResponseDto, [
-  'plants',
-  'user',
-]) {}
 
 export class PlantResponseDto {
   @ApiProperty()
@@ -39,7 +41,7 @@ export class PlantResponseDto {
   @ApiProperty({ type: TransplantingWithoutDetails, isArray: true })
   transplantings: TransplantingWithoutDetails[];
 
-  @ApiProperty()
+  @ApiProperty({ type: () => SpotWithoutDetails })
   spot: SpotWithoutDetails;
 }
 

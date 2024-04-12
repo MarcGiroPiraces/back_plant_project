@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
-import { User } from '../entities/user.entity';
+import { Role, User } from '../entities/user.entity';
 
 @Injectable()
 export class UserService {
@@ -35,49 +35,19 @@ export class UserService {
     }
   }
 
-  async findAll() {
-    try {
-      return await this.userRepository.createQueryBuilder('user').getMany();
-    } catch (error) {
-      throw new HttpException(
-        'Error getting all users.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async findOne(id: number) {
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .where('user.id = :id', { id })
-      .getOne();
-    if (!user) {
-      throw new HttpException(
-        `User with id ${id} not found.`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    return user;
-  }
-
-  async findOneByEmailRepo(email: string) {
-    const user = (await this.userRepository
-      .createQueryBuilder('user')
-      .addSelect('user.password')
-      .where('user.email = :email', { email })
-      .getOne()) as User;
-
-    return user || null;
-  }
-
-  async update(id: number, userId: number, updateUserDto: UpdateUserDto) {
-    if (id !== userId) {
+  async update(
+    id: number,
+    requestUser: Partial<User>,
+    updateUserDto: UpdateUserDto,
+  ) {
+    const validateUserAccess = this.validateRoleAndAccess(id, requestUser);
+    if (!validateUserAccess) {
       throw new HttpException(
         'You can only update your own user.',
         HttpStatus.FORBIDDEN,
       );
     }
+
     const user = await this.userRepository
       .createQueryBuilder('user')
       .where('id = :id', { id })
@@ -106,8 +76,43 @@ export class UserService {
     }
   }
 
-  async remove(id: number, userId: number) {
-    if (id !== userId) {
+  async findAll() {
+    try {
+      return await this.userRepository.createQueryBuilder('user').getMany();
+    } catch (error) {
+      throw new HttpException(
+        'Error getting all users.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findOne(id: number, requestUser: Partial<User>) {
+    const validateUserAccess = this.validateRoleAndAccess(id, requestUser);
+    if (!validateUserAccess) {
+      throw new HttpException(
+        'You can only get your own user.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.id = :id', { id })
+      .getOne();
+    if (!user) {
+      throw new HttpException(
+        `User with id ${id} not found.`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return user;
+  }
+
+  async remove(id: number, requestUser: Partial<User>) {
+    const validateUserAccess = this.validateRoleAndAccess(id, requestUser);
+    if (!validateUserAccess) {
       throw new HttpException(
         'You can only delete your own user.',
         HttpStatus.FORBIDDEN,
@@ -129,5 +134,22 @@ export class UserService {
         HttpStatus.NOT_FOUND,
       );
     }
+  }
+
+  async findOneByEmailRepo(email: string) {
+    const user = (await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne()) as User;
+
+    return user || null;
+  }
+
+  private validateRoleAndAccess(userId: number, user: Partial<User>) {
+    const isAdmin = user.role === Role.Admin;
+    const isOwner = userId === user.id;
+
+    return isAdmin || isOwner;
   }
 }

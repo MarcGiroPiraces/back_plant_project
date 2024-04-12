@@ -105,4 +105,14 @@ export class SpotService {
       );
     }
   }
+
+  async isSpotFromUser(spotId: number, userId: number) {
+    const spot = await this.spotRepository
+      .createQueryBuilder('spot')
+      .where('spot.id = :spotId', { spotId })
+      .andWhere('spot.user = :userId', { userId })
+      .getOne();
+
+    return !!spot;
+  }
 }

@@ -10,5 +10,6 @@ import { SpotService } from './service/spot.service';
   imports: [TypeOrmModule.forFeature([Spot, User, Plant])],
   controllers: [SpotController],
   providers: [SpotService],
+  exports: [SpotService],
 })
 export class SpotModule {}
