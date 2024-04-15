@@ -1,32 +1,22 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { Role, User } from '../entities/user.entity';
+import { UserRepository } from '../repository/user.repository';
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
-  ) {}
+  constructor(@Inject(UserRepository) private userRepository: UserRepository) {}
 
   async create(createUserDto: CreateUserDto) {
-    const isEmailRegistered = await this.findOneByEmailRepo(
+    const isEmailRegistered = await this.userRepository.findOneByEmail(
       createUserDto.email,
     );
     if (isEmailRegistered) {
       throw new HttpException('Email already in use.', HttpStatus.BAD_REQUEST);
     }
     try {
-      const { identifiers } = await this.userRepository
-        .createQueryBuilder()
-        .insert()
-        .into(User)
-        .values(createUserDto)
-        .execute();
-
-      return identifiers[0].id as number;
+      return await this.userRepository.insert(createUserDto);
     } catch (error) {
       throw new HttpException(
         'Error creating the user.',
@@ -48,10 +38,7 @@ export class UserService {
       );
     }
 
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .where('id = :id', { id })
-      .getOne();
+    const user = await this.userRepository.findOneById(id);
     if (!user) {
       throw new HttpException(
         `User with id ${id} not found.`,
@@ -60,12 +47,16 @@ export class UserService {
     }
 
     try {
-      await this.userRepository
-        .createQueryBuilder()
-        .update(User)
-        .set(updateUserDto)
-        .where('id = :id', { id })
-        .execute();
+      const updatedUser = await this.userRepository.updateById(
+        id,
+        updateUserDto,
+      );
+      if (!updatedUser) {
+        throw new HttpException(
+          'Error updating the user.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
 
       return id;
     } catch (error) {
@@ -78,7 +69,7 @@ export class UserService {
 
   async findAll() {
     try {
-      return await this.userRepository.createQueryBuilder('user').getMany();
+      return await this.userRepository.findAll();
     } catch (error) {
       throw new HttpException(
         'Error getting all users.',
@@ -96,10 +87,7 @@ export class UserService {
       );
     }
 
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .where('user.id = :id', { id })
-      .getOne();
+    const user = await this.userRepository.findOneById(id);
     if (!user) {
       throw new HttpException(
         `User with id ${id} not found.`,
@@ -119,31 +107,12 @@ export class UserService {
       );
     }
 
-    try {
-      const deletedUser = await this.userRepository
-        .createQueryBuilder()
-        .delete()
-        .from(User)
-        .where('id = :id', { id })
-        .execute();
-
-      return deletedUser.affected === 1;
-    } catch (error) {
-      throw new HttpException(
-        `User with ${id} not found.`,
-        HttpStatus.NOT_FOUND,
-      );
+    const deletedUser = await this.userRepository.removeById(id);
+    if (!deletedUser) {
+      throw new HttpException(`Error deleting the user.`, HttpStatus.NOT_FOUND);
     }
-  }
 
-  async findOneByEmailRepo(email: string) {
-    const user = (await this.userRepository
-      .createQueryBuilder('user')
-      .addSelect('user.password')
-      .where('user.email = :email', { email })
-      .getOne()) as User;
-
-    return user || null;
+    return deletedUser;
   }
 
   private validateRoleAndAccess(userId: number, user: Partial<User>) {

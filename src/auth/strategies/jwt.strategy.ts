@@ -3,11 +3,11 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import config from 'src/config/config';
 import { Role } from '../../user/entities/user.entity';
-import { UserService } from '../../user/service/user.service';
+import { UserRepository } from '../../user/repository/user.repository';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(@Inject(UserService) private userRepository: UserService) {
+  constructor(@Inject(UserRepository) private userRepository: UserRepository) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -21,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     email: string;
     role: Role;
   }) {
-    const user = await this.userRepository.findOneByEmailRepo(payload.email);
+    const user = await this.userRepository.findOneByEmail(payload.email);
     if (!user) {
       throw new Error('User not found');
     }

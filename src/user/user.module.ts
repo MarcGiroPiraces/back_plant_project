@@ -5,6 +5,7 @@ import { Plant } from '../plant/entities/plant.entity';
 import { Spot } from '../spot/entities/spot.entity';
 import { UserController } from './controller/user.controller';
 import { User } from './entities/user.entity';
+import { UserRepository } from './repository/user.repository';
 import { UserService } from './service/user.service';
 
 @Module({
@@ -13,7 +14,7 @@ import { UserService } from './service/user.service';
     forwardRef(() => AuthModule),
   ],
   controllers: [UserController],
-  providers: [UserService],
-  exports: [UserService],
+  providers: [UserService, UserRepository],
+  exports: [UserService, UserRepository],
 })
 export class UserModule {}

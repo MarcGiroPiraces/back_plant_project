@@ -80,7 +80,7 @@ export class PlantRepository {
 
   async findById(id: number) {
     return await this.initiateQueryBuilder()
-      .leftJoinAndSelect('plant.waterings', 'watering')
+      .leftJoinAndSelect('plant.waterings', 'waterings')
       .leftJoinAndSelect('plant.transplantings', 'transplantings')
       .where('plant.id = :id', { id })
       .getOne();
