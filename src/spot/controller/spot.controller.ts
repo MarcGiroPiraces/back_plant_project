@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -18,7 +19,7 @@ import {
 import { CustomRequest } from '../../CustomRequest';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateSpotDto } from '../dto/create-spot.dto';
-import { SpotResponseDto } from '../dto/find-all-spots.dto';
+import { FindAllSpotsParams, SpotResponseDto } from '../dto/find-all-spots.dto';
 import { SpotService } from '../service/spot.service';
 
 @ApiTags('Spots')
@@ -46,10 +47,10 @@ export class SpotController {
     type: SpotResponseDto,
     isArray: true,
   })
-  findAll(@Req() req: CustomRequest) {
-    const userId = req.user.id;
+  findAll(@Query() filters: FindAllSpotsParams, @Req() req: CustomRequest) {
+    const user = req.user;
 
-    return this.spotService.findAll(userId);
+    return this.spotService.findAll(user, filters);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -58,8 +59,10 @@ export class SpotController {
     description: 'Get a specific spot by id.',
     type: SpotResponseDto,
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.spotService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
+    const user = req.user;
+
+    return this.spotService.findOne(user, id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -68,7 +71,9 @@ export class SpotController {
     description: 'Delete a specific spot by id.',
     type: Boolean,
   })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.spotService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
+    const user = req.user;
+
+    return this.spotService.remove(user, id);
   }
 }

@@ -12,6 +12,6 @@ export class Watering {
   @Column({})
   fertilizer: boolean;
 
-  @ManyToOne(() => Plant, (plant) => plant.waterings, { cascade: true })
+  @ManyToOne(() => Plant, (plant) => plant.waterings, { onDelete: 'CASCADE' })
   plant: Plant;
 }

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, IsPositive } from 'class-validator';
 import { SpotWithoutDetails } from '../../spot/dto/find-all-spots.dto';
 import { TransplantingWithoutDetails } from '../../transplanting/dto/find-all-transplantings.dto';
 import { WateringWithoutDetails } from '../../watering/dto/find-all-waterings.dto';
@@ -8,7 +8,7 @@ import { WateringWithoutDetails } from '../../watering/dto/find-all-waterings.dt
 export class FindAllPlantsParams {
   @ApiPropertyOptional()
   @IsOptional()
-  @IsNumber()
+  @IsPositive()
   @Transform(({ value }) => parseInt(value))
   spotId: number;
 

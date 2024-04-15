@@ -9,7 +9,9 @@ export class Transplanting {
   @Column()
   date: Date;
 
-  @ManyToOne(() => Plant, (plant) => plant.transplantings, { cascade: true })
+  @ManyToOne(() => Plant, (plant) => plant.transplantings, {
+    onDelete: 'CASCADE',
+  })
   plant: Plant;
 
   @Column()

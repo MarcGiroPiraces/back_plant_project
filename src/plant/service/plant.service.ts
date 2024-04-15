@@ -1,25 +1,21 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { SpotService } from '../../spot/service/spot.service';
 import { Role, User } from '../../user/entities/user.entity';
 import { CreatePlantDto } from '../dto/create-plant.dto';
 import { FindAllPlantsParams } from '../dto/find-all-plants.dto';
 import { UpdatePlantDto } from '../dto/update-plant.dto';
-import { Plant } from '../entities/plant.entity';
+import { PlantRepository } from '../repository/plant.repository';
 
 @Injectable()
 export class PlantService {
   constructor(
-    @InjectRepository(Plant) private plantRepository: Repository<Plant>,
-    private spotService: SpotService,
+    @Inject(PlantRepository) private plantRepository: PlantRepository,
+    @Inject(SpotService) private spotService: SpotService,
   ) {}
+
   async create(userId: number, plantData: CreatePlantDto): Promise<number> {
-    const isPlantNameRegistered = await this.plantRepository
-      .createQueryBuilder('plant')
-      .where('plant.name = :name', { name: plantData.name })
-      .andWhere('plant.user = :userId', { userId })
-      .getOne();
+    const isPlantNameRegistered =
+      await this.plantRepository.findByNameAndUserId(plantData.name, userId);
     if (isPlantNameRegistered) {
       throw new HttpException(
         'Plant name is already in use.',
@@ -27,25 +23,19 @@ export class PlantService {
       );
     }
 
-    const { spotId, ...newPlantData } = { ...plantData };
+    const { spotId, ...plantDataWithoutSpotId } = plantData;
+    const relations = [{ spot: spotId }, { user: userId }];
     try {
-      const { identifiers } = await this.plantRepository
-        .createQueryBuilder()
-        .insert()
-        .into(Plant)
-        .values({ ...newPlantData, createdAt: new Date() })
-        .execute();
-      const newPlantId = identifiers[0].id as number;
-      await this.plantRepository
-        .createQueryBuilder('plant')
-        .relation(Plant, 'user')
-        .of(newPlantId)
-        .set(userId);
-      await this.plantRepository
-        .createQueryBuilder('plant')
-        .relation(Plant, 'spot')
-        .of(newPlantId)
-        .set(spotId);
+      const newPlantId = await this.plantRepository.insert(
+        plantDataWithoutSpotId,
+        relations,
+      );
+      if (!newPlantId) {
+        throw new HttpException(
+          'Error creating the plant.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
 
       return newPlantId;
     } catch (error) {
@@ -57,10 +47,11 @@ export class PlantService {
   }
 
   async update(
-    id: number,
     requestUser: Partial<User>,
+    id: number,
     plantData: UpdatePlantDto,
   ) {
+    //#region Validate user access to plant
     const validateUserAccess = await this.validateUserAccessToPlant(
       id,
       requestUser,
@@ -71,69 +62,41 @@ export class PlantService {
         HttpStatus.FORBIDDEN,
       );
     }
+    //#endregion
+    const { spotId, ...plantDataWithoutSpotId } = plantData;
 
-    const plant = await this.plantRepository
-      .createQueryBuilder('plant')
-      .where('plant.id = :id', { id })
-      .andWhere('plant.user = :userId', { userId: requestUser.id })
-      .getOne();
-    if (!plant) {
+    const updatedPlant = await this.plantRepository.updateById(
+      id,
+      plantDataWithoutSpotId,
+      spotId,
+    );
+    if (!updatedPlant) {
       throw new HttpException(
-        `Plant with id ${id} not found.`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    try {
-      await this.plantRepository
-        .createQueryBuilder()
-        .update(Plant)
-        .set({ ...plantData })
-        .where('id = :id', { id })
-        .execute();
-
-      return id;
-    } catch (error) {
-      throw new HttpException(
-        'Error updating the plant.',
+        `Error while updating the plant.`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+
+    return id;
   }
 
   async findAll(requestUser: Partial<User>, filters: FindAllPlantsParams) {
-    //#region Filters preparation
-    const spotId = filters.spotId ? filters.spotId : null;
-    const userId = filters.userId ? filters.userId : null;
-    //#endregion
-
-    //#region User access validation
-    if (requestUser.role !== Role.Admin) {
-      const isFiltersValid = await this.validateFilters(filters, requestUser);
+    //#region User access control
+    const isRequestUserAdmin = requestUser.role === Role.Admin;
+    if (!isRequestUserAdmin) {
+      const isFiltersValid = await this.validateFilters(
+        filters,
+        requestUser.id,
+      );
       if (!isFiltersValid) {
-        throw new HttpException(
-          'You can only see your own plants.',
-          HttpStatus.FORBIDDEN,
-        );
+        throw new HttpException('Wrong filters.', HttpStatus.BAD_REQUEST);
       }
     }
     //#endregion
 
     //#region Query execution
     try {
-      let query = this.plantRepository
-        .createQueryBuilder('plant')
-        .leftJoinAndSelect('plant.waterings', 'waterings')
-        .leftJoinAndSelect('plant.transplantings', 'transplantings')
-        .leftJoinAndSelect('plant.spot', 'spot');
-      if (userId) {
-        query = query.where('plant.userId = :userId', { userId });
-      }
-      if (spotId) {
-        query = query.where('plant.spotId = :spotId', { spotId });
-      }
-
-      return await query.getMany();
+      return await this.plantRepository.find(filters);
     } catch (error) {
       throw new HttpException(
         'Error getting all plants.',
@@ -143,7 +106,7 @@ export class PlantService {
     //#endregion
   }
 
-  async findOne(id: number, requestUser: Partial<User>) {
+  async findOne(requestUser: Partial<User>, id: number) {
     const validateUserAccess = await this.validateUserAccessToPlant(
       id,
       requestUser,
@@ -156,12 +119,7 @@ export class PlantService {
     }
 
     try {
-      return await this.plantRepository
-        .createQueryBuilder('plant')
-        .leftJoinAndSelect('plant.waterings', 'waterings')
-        .leftJoinAndSelect('plant.transplantings', 'transplantings')
-        .where('plant.id = :id', { id })
-        .getOne();
+      return await this.plantRepository.findById(id);
     } catch (error) {
       throw new HttpException(
         `Plant with id ${id} not found.`,
@@ -170,7 +128,7 @@ export class PlantService {
     }
   }
 
-  async remove(id: number, requestUser: Partial<User>) {
+  async remove(requestUser: Partial<User>, id: number) {
     const validateUserAccess = await this.validateUserAccessToPlant(
       id,
       requestUser,
@@ -183,20 +141,15 @@ export class PlantService {
     }
 
     try {
-      const removedPlant = await this.plantRepository
-        .createQueryBuilder()
-        .delete()
-        .from(Plant)
-        .where('id = :id', { id })
-        .execute();
-      if (removedPlant.affected === 0) {
+      const removedPlant = await this.plantRepository.removeById(id);
+      if (!removedPlant) {
         throw new HttpException(
           `Plant with id ${id} not found.`,
           HttpStatus.NOT_FOUND,
         );
       }
 
-      return removedPlant.affected === 1;
+      return removedPlant;
     } catch (error) {
       throw new HttpException(
         `Plant with id ${id} not found.`,
@@ -206,40 +159,35 @@ export class PlantService {
   }
 
   private async validateUserAccessToPlant(id: number, user: Partial<User>) {
-    const userRole = user.role;
-    if (userRole === Role.Admin) return true;
+    const isAdminUser = user.role === Role.Admin;
+    if (isAdminUser) return true;
 
-    const isPlantFromUser = await this.isPlantFromUser(id, user.id);
-
-    return isPlantFromUser;
+    return await this.isPlantFromUser(id, user.id);
   }
 
   private async isPlantFromUser(plantId: number, userId: number) {
-    const plant = await this.plantRepository
-      .createQueryBuilder('plant')
-      .where('plant.id = :plantId', { plantId })
-      .andWhere('plant.user = :userId', { userId })
-      .getOne();
+    const plant = await this.plantRepository.findByIdAndUserId(plantId, userId);
 
     return !!plant;
   }
 
+  /**
+   * Only for non-admin users.
+   *
+   * userId is mandatory and needs to be the id of the user making the request.
+   *
+   * spotId is optional, if sent, the user needs to have access to it.
+   */
   private async validateFilters(
     filters: FindAllPlantsParams,
-    requestUser: Partial<User>,
+    requestUserId: number,
   ) {
-    const spotId = filters.spotId ? filters.spotId : null;
-    const userId = filters.userId ? filters.userId : null;
+    const { spotId, userId } = filters;
+
+    if (userId !== requestUserId) return false;
 
     if (spotId) {
-      const userAccessToSpot = await this.spotService.isSpotFromUser(
-        spotId,
-        requestUser.id,
-      );
-      if (!userAccessToSpot) return false;
-    }
-    if (userId) {
-      if (requestUser.id !== userId) return false;
+      return await this.spotService.isSpotFromUser(spotId, requestUserId);
     }
 
     return true;

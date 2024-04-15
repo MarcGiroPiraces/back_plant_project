@@ -8,6 +8,7 @@ import { UserModule } from '../user/user.module';
 import { Watering } from '../watering/entities/watering.entity';
 import { PlantController } from './controller/plant.controller';
 import { Plant } from './entities/plant.entity';
+import { PlantRepository } from './repository/plant.repository';
 import { PlantService } from './service/plant.service';
 
 @Module({
@@ -17,6 +18,6 @@ import { PlantService } from './service/plant.service';
     SpotModule,
   ],
   controllers: [PlantController],
-  providers: [PlantService],
+  providers: [PlantService, PlantRepository],
 })
 export class PlantModule {}

@@ -58,7 +58,7 @@ export class PlantController {
   ) {
     const user = req.user;
 
-    return this.plantService.update(id, user, updatePlantDto);
+    return this.plantService.update(user, id, updatePlantDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -84,7 +84,7 @@ export class PlantController {
   findOne(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
     const user = req.user;
 
-    return this.plantService.findOne(id, user);
+    return this.plantService.findOne(user, id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -96,6 +96,6 @@ export class PlantController {
   remove(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
     const user = req.user;
 
-    return this.plantService.remove(id, user);
+    return this.plantService.remove(user, id);
   }
 }

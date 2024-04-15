@@ -32,6 +32,6 @@ export class Spot {
   @OneToMany(() => Plant, (plant) => plant.spot)
   plants: Plant[];
 
-  @ManyToOne(() => User, (user) => user.spots)
+  @ManyToOne(() => User, (user) => user.spots, { onDelete: 'CASCADE' })
   user: User;
 }

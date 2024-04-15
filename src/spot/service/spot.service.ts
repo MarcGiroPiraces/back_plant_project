@@ -1,21 +1,18 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { Role, User } from '../../user/entities/user.entity';
 import { CreateSpotDto } from '../dto/create-spot.dto';
-import { Spot } from '../entities/spot.entity';
+import { FindAllSpotsParams } from '../dto/find-all-spots.dto';
+import { SpotRepository } from '../repository/spot.repository';
 
 @Injectable()
 export class SpotService {
-  constructor(
-    @InjectRepository(Spot) private spotRepository: Repository<Spot>,
-  ) {}
-  async create(userId: number, createSpotDto: CreateSpotDto) {
-    const isSpotRegistred = await this.spotRepository
-      .createQueryBuilder('spot')
-      .where('spot.room = :room', { room: createSpotDto.room })
-      .andWhere('spot.user = :userId', { userId })
-      .andWhere('spot.place = :place', { place: createSpotDto.place })
-      .getOne();
+  constructor(@Inject(SpotRepository) private spotRepository: SpotRepository) {}
+  async create(userId: number, createSpotDto: CreateSpotDto): Promise<number> {
+    const isSpotRegistred = await this.spotRepository.findByRoomUserAndPlace(
+      createSpotDto.room,
+      userId,
+      createSpotDto.place,
+    );
     if (isSpotRegistred) {
       throw new HttpException(
         'Spot name is already in use.',
@@ -23,96 +20,115 @@ export class SpotService {
       );
     }
 
-    try {
-      const { identifiers } = await this.spotRepository
-        .createQueryBuilder()
-        .insert()
-        .into(Spot)
-        .values({ ...createSpotDto })
-        .execute();
-      const newSpotId = identifiers[0].id as number;
-      await this.spotRepository
-        .createQueryBuilder('spot')
-        .relation(Spot, 'user')
-        .of(newSpotId)
-        .set(userId);
-
-      return newSpotId;
-    } catch (error) {
+    const newSpotId = await this.spotRepository.insert(createSpotDto, userId);
+    if (!newSpotId) {
       throw new HttpException(
         'Error creating the spot.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+
+    return newSpotId;
   }
 
-  async findAll(userId: number) {
-    try {
-      let query = this.spotRepository
-        .createQueryBuilder('spot')
-        .leftJoinAndSelect('spot.user', 'user')
-        .leftJoinAndSelect('spot.plants', 'plants');
-
-      if (userId) {
-        query = query.where('spot.user = :userId', { userId });
+  async findAll(requestUser: Partial<User>, filters: FindAllSpotsParams) {
+    //#region User access control
+    const isRequestUserAdmin = requestUser.role === Role.Admin;
+    if (!isRequestUserAdmin) {
+      const isFiltersValid = this.validateFilters(filters, requestUser.id);
+      if (!isFiltersValid) {
+        throw new HttpException('Wrong filters.', HttpStatus.BAD_REQUEST);
       }
+    }
+    //#endregion
 
-      return await query.getMany();
+    //#region Query execution
+    try {
+      return await this.spotRepository.find(filters);
     } catch (error) {
       throw new HttpException(
         'Error getting all spots.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+    //#endregion
   }
 
-  async findOne(id: number) {
-    try {
-      return await this.spotRepository
-        .createQueryBuilder('spot')
-        .leftJoinAndSelect('spot.user', 'user')
-        .leftJoinAndSelect('spot.plants', 'plants')
-        .where('spot.id = :id', { id })
-        .getOne();
-    } catch (error) {
+  async findOne(requestUser: Partial<User>, id: number) {
+    //#region User access control
+    const validateUserAccess = await this.validateUserAccessToSpot(
+      id,
+      requestUser,
+    );
+    if (!validateUserAccess) {
+      throw new HttpException(
+        'You can only see your own spots.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    //#endregion
+
+    const spot = await this.spotRepository.findById(id);
+    if (!spot) {
       throw new HttpException(
         `Spot with id ${id} not found.`,
         HttpStatus.NOT_FOUND,
       );
     }
+
+    return spot;
   }
 
-  async remove(id: number) {
-    try {
-      const removedSpot = await this.spotRepository
-        .createQueryBuilder()
-        .delete()
-        .from(Spot)
-        .where('id = :id', { id })
-        .execute();
-      if (removedSpot.affected === 0) {
-        throw new HttpException(
-          `Spot with id ${id} not found.`,
-          HttpStatus.NOT_FOUND,
-        );
-      }
+  async remove(requestUser: Partial<User>, id: number) {
+    //#region User access control
+    const validateUserAccess = await this.validateUserAccessToSpot(
+      id,
+      requestUser,
+    );
+    if (!validateUserAccess) {
+      throw new HttpException(
+        'You can only see your own spots.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    //#endregion
 
-      return removedSpot.affected === 1;
-    } catch (error) {
+    const removedSpot = await this.spotRepository.removeById(id);
+    if (!removedSpot) {
       throw new HttpException(
         `Spot with id ${id} not found.`,
         HttpStatus.NOT_FOUND,
       );
     }
+
+    return removedSpot;
   }
 
   async isSpotFromUser(spotId: number, userId: number) {
-    const spot = await this.spotRepository
-      .createQueryBuilder('spot')
-      .where('spot.id = :spotId', { spotId })
-      .andWhere('spot.user = :userId', { userId })
-      .getOne();
+    const spot = await this.spotRepository.findById(spotId);
+    const spotUserId = spot ? spot.user.id : null;
 
-    return !!spot;
+    return spotUserId === userId;
+  }
+
+  private validateFilters(filters: FindAllSpotsParams, requestUserId: number) {
+    const { userId } = filters;
+
+    return userId === requestUserId;
+  }
+
+  /**
+   * If the user is an admin, he can access any spot.
+   *
+   * If the user is not an admin, he can only access his own spots.
+   */
+  private async validateUserAccessToSpot(
+    spotId: number,
+    requestUser: Partial<User>,
+  ) {
+    const isAdminUser = requestUser.role === Role.Admin;
+    if (isAdminUser) return true;
+
+    return await this.isSpotFromUser(spotId, requestUser.id);
   }
 }
