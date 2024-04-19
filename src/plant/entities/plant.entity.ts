@@ -5,6 +5,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Photo } from '../../photo/entities/photo.entity';
 import { Spot } from '../../spot/entities/spot.entity';
 import { Transplanting } from '../../transplanting/entities/transplanting.entity';
 import { User } from '../../user/entities/user.entity';
@@ -38,4 +39,7 @@ export class Plant {
 
   @ManyToOne(() => Spot, (spot) => spot.plants, { onDelete: 'CASCADE' })
   spot: Spot;
+
+  @OneToMany(() => Photo, (photo) => photo.plant)
+  photos: Photo[];
 }

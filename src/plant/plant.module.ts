@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Photo } from '../photo/entities/photo.entity';
+import { PhotoModule } from '../photo/photo.module';
 import { Spot } from '../spot/entities/spot.entity';
 import { SpotModule } from '../spot/spot.module';
 import { Transplanting } from '../transplanting/entities/transplanting.entity';
@@ -13,9 +15,17 @@ import { PlantService } from './service/plant.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Plant, Transplanting, User, Spot, Watering]),
+    TypeOrmModule.forFeature([
+      Plant,
+      Transplanting,
+      User,
+      Spot,
+      Watering,
+      Photo,
+    ]),
     UserModule,
     SpotModule,
+    PhotoModule,
   ],
   controllers: [PlantController],
   providers: [PlantService, PlantRepository],

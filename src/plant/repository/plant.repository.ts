@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
+import { PhotoRepository } from '../../photo/repository/photo.repository';
 import { CreatePlantDto } from '../dto/create-plant.dto';
 import { FindAllPlantsParams } from '../dto/find-all-plants.dto';
 import { Plant } from '../entities/plant.entity';
@@ -10,6 +11,7 @@ export class PlantRepository {
   constructor(
     private dataSource: DataSource,
     @InjectRepository(Plant) private plantRepository: Repository<Plant>,
+    @Inject(PhotoRepository) private photoRepository: PhotoRepository,
   ) {}
 
   private initiateQueryBuilder() {
@@ -21,7 +23,7 @@ export class PlantRepository {
   }
 
   async insert(
-    plantData: Omit<CreatePlantDto, 'spotId'>,
+    plantData: Omit<CreatePlantDto, 'spotId' | 'photoId'>,
     relations: { [key: string]: number }[],
   ) {
     const queryRunner = this.startTransaction();
@@ -40,7 +42,11 @@ export class PlantRepository {
       await Promise.all(
         relations.map(async (relation) => {
           for (const [key, value] of Object.entries(relation)) {
-            await this.setRelation(plantId, value, key);
+            if (key === 'photos') {
+              await this.addRelation(plantId, value, key);
+            } else {
+              await this.setRelation(plantId, value, key);
+            }
           }
         }),
       );
@@ -62,6 +68,14 @@ export class PlantRepository {
       .relation(Plant, relation)
       .of(id)
       .set(foreignId);
+  }
+
+  async addRelation(id: number, foreignId: number, relation: string) {
+    return await this.dataSource
+      .createQueryBuilder()
+      .relation(Plant, relation)
+      .of(id)
+      .add(foreignId);
   }
 
   async findByNameAndUserId(name: string, userId: number) {

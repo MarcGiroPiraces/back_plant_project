@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsDate, IsPositive, IsString } from 'class-validator';
 
@@ -19,4 +19,8 @@ export class CreatePlantDto {
   @ApiProperty()
   @IsPositive()
   spotId: number;
+
+  @ApiPropertyOptional()
+  @IsPositive()
+  photoId: number;
 }

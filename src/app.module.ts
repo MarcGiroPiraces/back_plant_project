@@ -1,10 +1,10 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
 import { AppContextMiddleware } from './app-context.middleware';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { PhotoModule } from './photo/photo.module';
 import { PlantModule } from './plant/plant.module';
 import { SpotModule } from './spot/spot.module';
 import { TransplantingModule } from './transplanting/transplanting.module';
@@ -28,11 +28,11 @@ import { WateringModule } from './watering/watering.module';
     WateringModule,
     TransplantingModule,
     AuthModule,
+    PhotoModule,
   ],
   providers: [AppService],
 })
 export class AppModule implements NestModule {
-  constructor(private dataSource: DataSource) {}
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(AppContextMiddleware).forRoutes('*');
   }

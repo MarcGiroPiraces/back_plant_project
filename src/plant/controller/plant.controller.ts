@@ -31,7 +31,7 @@ import { PlantService } from '../service/plant.service';
 @ApiBearerAuth()
 @Controller('plant')
 export class PlantController {
-  constructor(private readonly plantService: PlantService) {}
+  constructor(private plantService: PlantService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()

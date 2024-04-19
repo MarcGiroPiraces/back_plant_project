@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { SpotService } from '../../spot/service/spot.service';
 import { Role, User } from '../../user/entities/user.entity';
 import { CreatePlantDto } from '../dto/create-plant.dto';
@@ -9,8 +9,8 @@ import { PlantRepository } from '../repository/plant.repository';
 @Injectable()
 export class PlantService {
   constructor(
-    @Inject(PlantRepository) private plantRepository: PlantRepository,
-    @Inject(SpotService) private spotService: SpotService,
+    private plantRepository: PlantRepository,
+    private spotService: SpotService,
   ) {}
 
   async create(userId: number, plantData: CreatePlantDto): Promise<number> {
@@ -23,8 +23,8 @@ export class PlantService {
       );
     }
 
-    const { spotId, ...plantDataWithoutSpotId } = plantData;
-    const relations = [{ spot: spotId }, { user: userId }];
+    const { spotId, photoId, ...plantDataWithoutSpotId } = plantData;
+    const relations = [{ spot: spotId }, { user: userId }, { photos: photoId }];
     try {
       const newPlantId = await this.plantRepository.insert(
         plantDataWithoutSpotId,

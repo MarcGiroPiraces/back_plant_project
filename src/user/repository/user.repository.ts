@@ -38,6 +38,7 @@ export class UserRepository {
 
   async findOneByEmail(email: string) {
     return await this.initiateQueryBuilder()
+      .addSelect('user.password')
       .where('email = :email', { email })
       .getOne();
   }
