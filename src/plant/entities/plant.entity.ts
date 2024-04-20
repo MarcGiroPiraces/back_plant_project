@@ -4,6 +4,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 import { Photo } from '../../photo/entities/photo.entity';
 import { Spot } from '../../spot/entities/spot.entity';
@@ -29,17 +30,17 @@ export class Plant {
   createdAt: Date;
 
   @ManyToOne(() => User, (user) => user.plants, { onDelete: 'CASCADE' })
-  user: User;
+  user: Relation<User>;
 
   @OneToMany(() => Watering, (watering) => watering.plant)
-  waterings: Watering[];
+  waterings: Relation<Watering[]>;
 
   @OneToMany(() => Transplanting, (transplanting) => transplanting.plant)
-  transplantings: Transplanting[];
+  transplantings: Relation<Transplanting[]>;
 
   @ManyToOne(() => Spot, (spot) => spot.plants, { onDelete: 'CASCADE' })
-  spot: Spot;
+  spot: Relation<Spot>;
 
   @OneToMany(() => Photo, (photo) => photo.plant)
-  photos: Photo[];
+  photos: Relation<Photo[]>;
 }

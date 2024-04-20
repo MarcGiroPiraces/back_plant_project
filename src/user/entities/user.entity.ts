@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Relation,
+} from 'typeorm';
 import { Plant } from '../../plant/entities/plant.entity';
 import { Spot } from '../../spot/entities/spot.entity';
 
@@ -28,8 +34,8 @@ export class User {
   role: Role;
 
   @OneToMany(() => Plant, (plant) => plant.user)
-  plants: Plant[];
+  plants: Relation<Plant[]>;
 
   @OneToMany(() => Spot, (spot) => spot.user)
-  spots: Spot[];
+  spots: Relation<Spot[]>;
 }

@@ -62,7 +62,5 @@ export class PhotoController {
     };
 
     return this.photoService.create(userId, createPhotoDto);
-
-    // return this.photoService.create(userId, createPhotoDto);
   }
 }

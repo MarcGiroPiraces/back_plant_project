@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Relation,
+} from 'typeorm';
 import { Plant } from '../../plant/entities/plant.entity';
 
 @Entity()
@@ -10,5 +16,5 @@ export class Photo {
   url: string;
 
   @ManyToOne(() => Plant, (plant) => plant.photos, { onDelete: 'CASCADE' })
-  plant: Plant;
+  plant: Relation<Plant>;
 }

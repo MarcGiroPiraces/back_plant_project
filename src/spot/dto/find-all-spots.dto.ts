@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsOptional, IsPositive } from 'class-validator';
+import { Relation } from 'typeorm';
 import { PlantWithoutDetails } from '../../plant/dto/find-all-plants.dto';
 import { UserResponseDto } from '../../user/dto/find-all-users.dto';
 
@@ -23,7 +24,7 @@ export class SpotResponseDto {
   place: string;
 
   @ApiProperty({ type: () => PlantWithoutDetails, isArray: true })
-  plants: PlantWithoutDetails[];
+  plants: Relation<PlantWithoutDetails[]>;
 
   @ApiProperty()
   user: UserResponseDto;

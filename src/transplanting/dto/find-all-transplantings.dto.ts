@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsOptional } from 'class-validator';
+import { Relation } from 'typeorm';
 import { PlantWithoutDetails } from '../../plant/dto/find-all-plants.dto';
 
 export class FindAllTransplantingsParams {
@@ -18,7 +19,7 @@ export class TransplantingResponseDto {
   date: Date;
 
   @ApiProperty({ type: () => PlantWithoutDetails })
-  plant: PlantWithoutDetails;
+  plant: Relation<PlantWithoutDetails>;
 
   @ApiProperty()
   potUpSize: boolean;

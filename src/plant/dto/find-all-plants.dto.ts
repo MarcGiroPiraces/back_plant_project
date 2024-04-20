@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsPositive } from 'class-validator';
+import { Relation } from 'typeorm';
 import { SpotWithoutDetails } from '../../spot/dto/find-all-spots.dto';
 import { TransplantingWithoutDetails } from '../../transplanting/dto/find-all-transplantings.dto';
 import { WateringWithoutDetails } from '../../watering/dto/find-all-waterings.dto';
@@ -42,7 +43,7 @@ export class PlantResponseDto {
   transplantings: TransplantingWithoutDetails[];
 
   @ApiProperty({ type: () => SpotWithoutDetails })
-  spot: SpotWithoutDetails;
+  spot: Relation<SpotWithoutDetails>;
 }
 
 export class PlantWithoutDetails extends OmitType(PlantResponseDto, [

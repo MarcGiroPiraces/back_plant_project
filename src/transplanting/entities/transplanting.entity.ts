@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Relation,
+} from 'typeorm';
 import { Plant } from '../../plant/entities/plant.entity';
 
 @Entity()
@@ -12,7 +18,7 @@ export class Transplanting {
   @ManyToOne(() => Plant, (plant) => plant.transplantings, {
     onDelete: 'CASCADE',
   })
-  plant: Plant;
+  plant: Relation<Plant>;
 
   @Column()
   potUpsize: boolean;

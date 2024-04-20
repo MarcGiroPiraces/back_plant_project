@@ -4,6 +4,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 import { Plant } from '../../plant/entities/plant.entity';
 import { User } from '../../user/entities/user.entity';
@@ -30,8 +31,8 @@ export class Spot {
   place: string;
 
   @OneToMany(() => Plant, (plant) => plant.spot)
-  plants: Plant[];
+  plants: Relation<Plant[]>;
 
   @ManyToOne(() => User, (user) => user.spots, { onDelete: 'CASCADE' })
-  user: User;
+  user: Relation<User>;
 }
