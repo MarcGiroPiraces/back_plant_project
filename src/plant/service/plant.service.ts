@@ -28,6 +28,7 @@ export class PlantService {
     try {
       const newPlantId = await this.plantRepository.insert(
         plantDataWithoutSpotId,
+        new Date(),
         relations,
       );
       if (!newPlantId) {
@@ -89,7 +90,7 @@ export class PlantService {
         requestUser.id,
       );
       if (!isFiltersValid) {
-        throw new HttpException('Wrong filters.', HttpStatus.BAD_REQUEST);
+        throw new HttpException('Invalid filters.', HttpStatus.BAD_REQUEST);
       }
     }
     //#endregion
@@ -165,7 +166,7 @@ export class PlantService {
     return await this.isPlantFromUser(id, user.id);
   }
 
-  private async isPlantFromUser(plantId: number, userId: number) {
+  async isPlantFromUser(plantId: number, userId: number) {
     const plant = await this.plantRepository.findByIdAndUserId(plantId, userId);
 
     return !!plant;

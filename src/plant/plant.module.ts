@@ -29,5 +29,6 @@ import { PlantService } from './service/plant.service';
   ],
   controllers: [PlantController],
   providers: [PlantService, PlantRepository],
+  exports: [PlantService],
 })
 export class PlantModule {}

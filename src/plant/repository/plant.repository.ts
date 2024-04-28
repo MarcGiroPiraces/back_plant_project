@@ -24,6 +24,7 @@ export class PlantRepository {
 
   async insert(
     plantData: Omit<CreatePlantDto, 'spotId' | 'photoId'>,
+    createdAt: Date,
     relations: { [key: string]: number }[],
   ) {
     const queryRunner = this.startTransaction();
@@ -34,7 +35,7 @@ export class PlantRepository {
     try {
       const result = await queryRunner.manager.insert(Plant, {
         ...plantData,
-        createdAt: new Date(),
+        createdAt,
       });
       const identifiers = result.identifiers;
       const plantId = identifiers[0].id as number;
@@ -62,7 +63,7 @@ export class PlantRepository {
     }
   }
 
-  async setRelation(id: number, foreignId: number, relation: string) {
+  private async setRelation(id: number, foreignId: number, relation: string) {
     return await this.dataSource
       .createQueryBuilder()
       .relation(Plant, relation)
@@ -70,7 +71,7 @@ export class PlantRepository {
       .set(foreignId);
   }
 
-  async addRelation(id: number, foreignId: number, relation: string) {
+  private async addRelation(id: number, foreignId: number, relation: string) {
     return await this.dataSource
       .createQueryBuilder()
       .relation(Plant, relation)

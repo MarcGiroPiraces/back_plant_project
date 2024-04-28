@@ -1,50 +1,60 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { PlantService } from '../../plant/service/plant.service';
+import { User } from '../../user/entities/user.entity';
 import { CreateTransplantingDto } from '../dto/create-transplanting.dto';
 import { FindAllTransplantingsParams } from '../dto/find-all-transplantings.dto';
-import { Transplanting } from '../entities/transplanting.entity';
+import { TransplantingRepository } from '../repository/transplanting.repository';
 
 @Injectable()
 export class TransplantingService {
   constructor(
-    @InjectRepository(Transplanting)
-    private repository: Repository<Transplanting>,
+    private transplantingRepository: TransplantingRepository,
+    private plantService: PlantService,
   ) {}
+
   async create(createTransplantingDto: CreateTransplantingDto) {
-    const { identifiers } = await this.repository
-      .createQueryBuilder()
-      .insert()
-      .into(Transplanting)
-      .values({
-        ...createTransplantingDto,
-        date: new Date(createTransplantingDto.date),
-      })
-      .execute();
-
-    const newTransplantingId = identifiers[0].id as number;
-    await this.repository
-      .createQueryBuilder('transplanting')
-      .relation(Transplanting, 'plant')
-      .of(newTransplantingId)
-      .set(createTransplantingDto.plantId);
-
-    return newTransplantingId;
-  }
-
-  async findAll(filters: FindAllTransplantingsParams) {
-    const plantId = filters.plantId ? filters.plantId : null;
+    const { plantId, ...transplantingData } = createTransplantingDto;
+    const relations = [{ plant: plantId }];
 
     try {
-      let query = this.repository
-        .createQueryBuilder('transplanting')
-        .innerJoinAndSelect('transplanting.plant', 'plant');
-
-      if (plantId) {
-        query = query.where('plant.id = :plantId', { plantId });
+      const newTransplantingId = await this.transplantingRepository.insert(
+        transplantingData,
+        relations,
+      );
+      if (!newTransplantingId) {
+        throw new HttpException(
+          'Error creating the transplanting.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
 
-      return await query.orderBy('transplanting.date', 'DESC').getMany();
+      return newTransplantingId;
+    } catch (error) {
+      throw new HttpException(
+        'Error creating the transplanting.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findAll(
+    requestUser: Partial<User>,
+    filters: FindAllTransplantingsParams,
+  ) {
+    //#region User access control
+    const isRequestUserAdmin = requestUser.role === 'admin';
+    if (!isRequestUserAdmin) {
+      const isFiltersValid = await this.validateFilters(
+        filters,
+        requestUser.id,
+      );
+      if (!isFiltersValid) {
+        throw new HttpException('Invalid filters.', HttpStatus.BAD_REQUEST);
+      }
+    }
+
+    try {
+      return await this.transplantingRepository.find(filters);
     } catch (error) {
       throw new HttpException(
         'Error while fetching transplanting.',
@@ -55,7 +65,7 @@ export class TransplantingService {
 
   async findOne(id: number) {
     try {
-      return await this.repository
+      return await this.transplantingRepository
         .createQueryBuilder('transplanting')
         .leftJoinAndSelect('transplanting.plant', 'plant')
         .where('transplanting.id = :id', { id })
@@ -70,7 +80,7 @@ export class TransplantingService {
 
   async remove(id: number) {
     try {
-      const removedTransplanting = await this.repository
+      const removedTransplanting = await this.transplantingRepository
         .createQueryBuilder()
         .delete()
         .where('id = :id', { id })
@@ -90,5 +100,24 @@ export class TransplantingService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  /**
+   *
+   * Only for non-admin users.
+   *
+   * plantId is mandatory and needs to be the id of a plant that belongs to the user.
+   */
+  private async validateFilters(
+    filters: FindAllTransplantingsParams,
+    requestUserId: number,
+  ) {
+    const { plantId } = filters;
+
+    if (!plantId) {
+      return false;
+    }
+
+    return await this.plantService.isPlantFromUser(plantId, requestUserId);
   }
 }
