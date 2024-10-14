@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -15,6 +16,7 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { CustomRequest } from 'src/CustomRequest';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateTransplantingDto } from '../dto/create-transplanting.dto';
 import {
@@ -46,12 +48,13 @@ export class TransplantingController {
     type: TransplantingResponseDto,
     isArray: true,
   })
-  findAll(@Query() { plantId }: FindAllTransplantingsParams) {
-    const filters = {
-      plantId,
-    };
+  findAll(
+    @Req() req: CustomRequest,
+    @Query() filters: FindAllTransplantingsParams,
+  ) {
+    const requestUser = req.user;
 
-    return this.transplantingService.findAll(filters);
+    return this.transplantingService.findAll(requestUser, filters);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -59,8 +62,10 @@ export class TransplantingController {
   @ApiOkResponse({
     description: 'Get a specific transplanting by id.',
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.transplantingService.findOne(id);
+  findOne(@Req() req: CustomRequest, @Param('id', ParseIntPipe) id: number) {
+    const requestUser = req.user;
+
+    return this.transplantingService.findOne(requestUser, id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -69,7 +74,9 @@ export class TransplantingController {
     description: 'Delete a specific transplanting by id.',
     type: Boolean,
   })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.transplantingService.remove(id);
+  remove(@Req() req: CustomRequest, @Param('id', ParseIntPipe) id: number) {
+    const requestUser = req.user;
+
+    return this.transplantingService.remove(requestUser, id);
   }
 }

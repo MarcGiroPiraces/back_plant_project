@@ -39,10 +39,10 @@ export class PlantController {
     description: 'Create a plant.',
     type: Number,
   })
-  create(@Body() createPlantDto: CreatePlantDto, @Req() req: CustomRequest) {
-    const userId = req.user.id;
+  create(@Req() req: CustomRequest, @Body() createPlantDto: CreatePlantDto) {
+    const requestUser = req.user;
 
-    return this.plantService.create(userId, createPlantDto);
+    return this.plantService.create(requestUser, createPlantDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -52,9 +52,9 @@ export class PlantController {
     type: Number,
   })
   update(
+    @Req() req: CustomRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePlantDto: UpdatePlantDto,
-    @Req() req: CustomRequest,
   ) {
     const user = req.user;
 
@@ -68,10 +68,10 @@ export class PlantController {
     type: PlantResponseDto,
     isArray: true,
   })
-  findAll(@Query() filters: FindAllPlantsParams, @Req() req: CustomRequest) {
-    const user = req.user;
+  findAll(@Req() req: CustomRequest, @Query() filters: FindAllPlantsParams) {
+    const requestUser = req.user;
 
-    return this.plantService.findAll(user, filters);
+    return this.plantService.findAll(requestUser, filters);
   }
 
   @UseGuards(JwtAuthGuard)

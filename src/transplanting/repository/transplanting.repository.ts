@@ -77,4 +77,29 @@ export class TransplantingRepository {
 
     return await query.orderBy('transplanting.date', 'DESC').getMany();
   }
+
+  async findOne(id: number) {
+    return await this.initiateQueryBuilder()
+      .innerJoin('transplanting.plant', 'plant')
+      .where('transplanting.id = :id', { id })
+      .getOne();
+  }
+
+  async isTransplantingFromUser(transplantingId: number, userId: number) {
+    return await this.initiateQueryBuilder()
+      .innerJoin('transplanting.plant', 'plant')
+      .innerJoin('plant.user', 'user')
+      .where('transplanting.id = :transplantingId', { transplantingId })
+      .andWhere('user.id = :userId', { userId })
+      .getOne();
+  }
+
+  async removeById(id: number) {
+    const removedTransplanting = await this.initiateQueryBuilder()
+      .delete()
+      .where('id = :id', { id })
+      .execute();
+
+    return removedTransplanting.affected === 1;
+  }
 }

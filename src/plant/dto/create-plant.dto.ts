@@ -21,6 +21,5 @@ export class CreatePlantDto {
   spotId: number;
 
   @ApiPropertyOptional()
-  @IsPositive()
   photoId: number;
 }

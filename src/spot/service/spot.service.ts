@@ -87,7 +87,7 @@ export class SpotService {
     );
     if (!validateUserAccess) {
       throw new HttpException(
-        'You can only see your own spots.',
+        'You can only remove your own spots.',
         HttpStatus.BAD_REQUEST,
       );
     }

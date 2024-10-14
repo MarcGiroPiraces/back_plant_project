@@ -13,7 +13,11 @@ export class PlantService {
     private spotService: SpotService,
   ) {}
 
-  async create(userId: number, plantData: CreatePlantDto): Promise<number> {
+  async create(
+    requestUser: Partial<User>,
+    plantData: CreatePlantDto,
+  ): Promise<number> {
+    const userId = requestUser.id;
     const isPlantNameRegistered =
       await this.plantRepository.findByNameAndUserId(plantData.name, userId);
     if (isPlantNameRegistered) {
@@ -83,15 +87,9 @@ export class PlantService {
 
   async findAll(requestUser: Partial<User>, filters: FindAllPlantsParams) {
     //#region User access control
-    const isRequestUserAdmin = requestUser.role === Role.Admin;
-    if (!isRequestUserAdmin) {
-      const isFiltersValid = await this.validateFilters(
-        filters,
-        requestUser.id,
-      );
-      if (!isFiltersValid) {
-        throw new HttpException('Invalid filters.', HttpStatus.BAD_REQUEST);
-      }
+    const isFiltersValid = await this.validateFilters(filters, requestUser);
+    if (!isFiltersValid) {
+      throw new HttpException('Invalid filters.', HttpStatus.BAD_REQUEST);
     }
     //#endregion
 
@@ -153,8 +151,8 @@ export class PlantService {
       return removedPlant;
     } catch (error) {
       throw new HttpException(
-        `Plant with id ${id} not found.`,
-        HttpStatus.NOT_FOUND,
+        `Error while deleting the plant with id ${id}.`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -181,14 +179,18 @@ export class PlantService {
    */
   private async validateFilters(
     filters: FindAllPlantsParams,
-    requestUserId: number,
+    requestUser: Partial<User>,
   ) {
+    const isRequestUserAdmin = requestUser.role === Role.Admin;
     const { spotId, userId } = filters;
 
-    if (userId !== requestUserId) return false;
+    if (!isRequestUserAdmin) {
+      const userIdCheck = userId === requestUser.id;
+      const spotIdCheck = spotId
+        ? await this.spotService.isSpotFromUser(spotId, requestUser.id)
+        : true;
 
-    if (spotId) {
-      return await this.spotService.isSpotFromUser(spotId, requestUserId);
+      if (!userIdCheck || !spotIdCheck) return false;
     }
 
     return true;
