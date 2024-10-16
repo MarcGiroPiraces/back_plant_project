@@ -34,20 +34,18 @@ import { UserService } from '../service/user.service';
 @Controller('user')
 export class UserController {
   constructor(
-    private userService: UserService,
-    private authService: AuthService,
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
   ) {}
 
   @Post()
   @ApiBearerAuth()
-  @ApiCreatedResponse({ description: 'Create a user.', type: Number })
-  async create(@Body() createUserDto: CreateUserDto) {
-    const password = await this.authService.hashPassword(
-      createUserDto.password,
-    );
-    createUserDto.password = password;
-
-    return this.userService.create(createUserDto);
+  @ApiCreatedResponse({
+    description: 'User created succesfully.',
+    type: Number,
+  })
+  async createOne(@Body() createUserDto: CreateUserDto) {
+    return this.userService.createOne(createUserDto);
   }
 
   @UseGuards(LocalAuthGuard)
@@ -67,14 +65,14 @@ export class UserController {
     description: 'Update a user by id.',
     type: Number,
   })
-  update(
+  updateOne(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
     @Req() req: CustomRequest,
   ) {
     const user = req.user;
 
-    return this.userService.update(id, user, updateUserDto);
+    return this.userService.updateOne(id, user, updateUserDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -110,9 +108,9 @@ export class UserController {
     description: 'Delete a user by id.',
     type: Boolean,
   })
-  remove(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
+  removeOne(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
     const user = req.user;
 
-    return this.userService.remove(id, user);
+    return this.userService.removeOne(id, user);
   }
 }

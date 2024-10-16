@@ -1,7 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { PhotoRepository } from '../../photo/repository/photo.repository';
 import { CreatePlantDto } from '../dto/create-plant.dto';
 import { FindAllPlantsParams } from '../dto/find-all-plants.dto';
 import { Plant } from '../entities/plant.entity';
@@ -9,9 +8,9 @@ import { Plant } from '../entities/plant.entity';
 @Injectable()
 export class PlantRepository {
   constructor(
-    private dataSource: DataSource,
-    @InjectRepository(Plant) private plantRepository: Repository<Plant>,
-    @Inject(PhotoRepository) private photoRepository: PhotoRepository,
+    private readonly dataSource: DataSource,
+    @InjectRepository(Plant)
+    private readonly plantRepository: Repository<Plant>,
   ) {}
 
   private initiateQueryBuilder() {
@@ -22,8 +21,8 @@ export class PlantRepository {
     return this.dataSource.createQueryRunner();
   }
 
-  async insert(
-    plantData: Omit<CreatePlantDto, 'spotId' | 'photoId'>,
+  async createOne(
+    createPlantDto: Omit<CreatePlantDto, 'spotId' | 'photoId'>,
     createdAt: Date,
     relations: { [key: string]: number }[],
   ) {
@@ -33,20 +32,20 @@ export class PlantRepository {
     await queryRunner.startTransaction();
 
     try {
-      const result = await queryRunner.manager.insert(Plant, {
-        ...plantData,
+      const createdPlant = await queryRunner.manager.insert(Plant, {
+        ...createPlantDto,
         createdAt,
       });
-      const identifiers = result.identifiers;
-      const plantId = identifiers[0].id as number;
+      const identifiers = createdPlant.identifiers;
+      const createdPlantId = identifiers[0].id as number;
 
       await Promise.all(
         relations.map(async (relation) => {
           for (const [key, value] of Object.entries(relation)) {
             if (key === 'photos') {
-              await this.addRelation(plantId, value, key);
+              await this.addRelation(createdPlantId, value, key);
             } else {
-              await this.setRelation(plantId, value, key);
+              await this.setRelation(createdPlantId, value, key);
             }
           }
         }),
@@ -54,7 +53,7 @@ export class PlantRepository {
 
       await queryRunner.commitTransaction();
 
-      return plantId;
+      return createdPlantId;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       return false;
@@ -79,21 +78,14 @@ export class PlantRepository {
       .add(foreignId);
   }
 
-  async findByNameAndUserId(name: string, userId: number) {
+  async findOneByNameAndUserId(name: string, userId: number) {
     return await this.initiateQueryBuilder()
       .where('plant.name = :name', { name })
       .andWhere('plant.user = :userId', { userId })
       .getOne();
   }
 
-  async findByIdLimitedData(id: number, userId: number) {
-    return await this.initiateQueryBuilder()
-      .where('plant.id = :id', { id })
-      .andWhere('plant.user = :userId', { userId })
-      .getOne();
-  }
-
-  async findById(id: number) {
+  async findOneById(id: number) {
     return await this.initiateQueryBuilder()
       .leftJoinAndSelect('plant.waterings', 'waterings')
       .leftJoinAndSelect('plant.transplantings', 'transplantings')
@@ -101,14 +93,14 @@ export class PlantRepository {
       .getOne();
   }
 
-  async findByIdAndUserId(id: number, userId: number) {
+  async findOneByIdAndUserId(id: number, userId: number) {
     return await this.initiateQueryBuilder()
       .where('plant.id = :id', { id })
       .andWhere('plant.user = :userId', { userId })
       .getOne();
   }
 
-  async find(filters: FindAllPlantsParams) {
+  async findOne(filters: FindAllPlantsParams) {
     const { userId, spotId } = filters;
 
     let query = this.initiateQueryBuilder()
@@ -125,7 +117,7 @@ export class PlantRepository {
     return await query.getMany();
   }
 
-  async updateById(id: number, plantData: Partial<Plant>, spotId: number) {
+  async updateOne(id: number, plantData: Partial<Plant>, spotId: number) {
     const queryRunner = this.startTransaction();
 
     await queryRunner.connect();
@@ -152,7 +144,7 @@ export class PlantRepository {
     }
   }
 
-  async removeById(id: number) {
+  async removeOne(id: number) {
     const removedPlant = await this.initiateQueryBuilder()
       .delete()
       .where('id = :id', { id })

@@ -31,34 +31,34 @@ import { PlantService } from '../service/plant.service';
 @ApiBearerAuth()
 @Controller('plant')
 export class PlantController {
-  constructor(private plantService: PlantService) {}
+  constructor(private readonly plantService: PlantService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
   @ApiCreatedResponse({
-    description: 'Create a plant.',
+    description: 'Plant created succesfully.',
     type: Number,
   })
-  create(@Req() req: CustomRequest, @Body() createPlantDto: CreatePlantDto) {
+  createOne(@Req() req: CustomRequest, @Body() createPlantDto: CreatePlantDto) {
     const requestUser = req.user;
 
-    return this.plantService.create(requestUser, createPlantDto);
+    return this.plantService.createOne(requestUser, createPlantDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOkResponse({
-    description: 'Update a plant by id.',
+    description: 'Plant updated succesfully.',
     type: Number,
   })
-  update(
+  updateOne(
     @Req() req: CustomRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePlantDto: UpdatePlantDto,
   ) {
-    const user = req.user;
+    const requestUser = req.user;
 
-    return this.plantService.update(user, id, updatePlantDto);
+    return this.plantService.updateOne(requestUser, id, updatePlantDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -82,9 +82,9 @@ export class PlantController {
     isArray: true,
   })
   findOne(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
-    const user = req.user;
+    const requestUser = req.user;
 
-    return this.plantService.findOne(user, id);
+    return this.plantService.findOne(requestUser, id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -93,9 +93,9 @@ export class PlantController {
     description: 'Delete a plant by id.',
     type: Boolean,
   })
-  remove(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
-    const user = req.user;
+  removeOne(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
+    const requestUser = req.user;
 
-    return this.plantService.remove(user, id);
+    return this.plantService.removeOne(requestUser, id);
   }
 }

@@ -37,8 +37,16 @@ export class TransplantingController {
     description: 'Create a transplanting.',
     type: Number,
   })
-  create(@Body() createTransplantingDto: CreateTransplantingDto) {
-    return this.transplantingService.create(createTransplantingDto);
+  createOne(
+    @Req() req: CustomRequest,
+    @Body() createTransplantingDto: CreateTransplantingDto,
+  ) {
+    const requestUser = req.user;
+
+    return this.transplantingService.createOne(
+      requestUser,
+      createTransplantingDto,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -77,6 +85,6 @@ export class TransplantingController {
   remove(@Req() req: CustomRequest, @Param('id', ParseIntPipe) id: number) {
     const requestUser = req.user;
 
-    return this.transplantingService.remove(requestUser, id);
+    return this.transplantingService.removeOne(requestUser, id);
   }
 }

@@ -34,10 +34,10 @@ export class SpotController {
     description: 'Create a spot.',
     type: Number,
   })
-  create(@Body() createSpotDto: CreateSpotDto, @Req() req: CustomRequest) {
-    const userId = req.user.id;
+  createOne(@Req() req: CustomRequest, @Body() createSpotDto: CreateSpotDto) {
+    const requestUser = req.user;
 
-    return this.spotService.create(userId, createSpotDto);
+    return this.spotService.createOne(requestUser, createSpotDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -71,9 +71,9 @@ export class SpotController {
     description: 'Delete a specific spot by id.',
     type: Boolean,
   })
-  remove(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
+  removeOne(@Param('id', ParseIntPipe) id: number, @Req() req: CustomRequest) {
     const user = req.user;
 
-    return this.spotService.remove(user, id);
+    return this.spotService.removeOne(user, id);
   }
 }

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/entities/user.entity';
@@ -7,8 +7,8 @@ import { UserRepository } from '../../user/repository/user.repository';
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(UserRepository) private userRepository: UserRepository,
-    private jwtService: JwtService,
+    private readonly userRepository: UserRepository,
+    private readonly jwtService: JwtService,
   ) {}
 
   async validateUser(email: string, password: string) {

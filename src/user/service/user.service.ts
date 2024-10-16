@@ -1,4 +1,5 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { AuthService } from 'src/auth/service/auth.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { Role, User } from '../entities/user.entity';
@@ -6,17 +7,25 @@ import { UserRepository } from '../repository/user.repository';
 
 @Injectable()
 export class UserService {
-  constructor(@Inject(UserRepository) private userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly authService: AuthService,
+  ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async createOne(createUserDto: CreateUserDto) {
     const isEmailRegistered = await this.userRepository.findOneByEmail(
       createUserDto.email,
     );
     if (isEmailRegistered) {
       throw new HttpException('Email already in use.', HttpStatus.BAD_REQUEST);
     }
+    const password = await this.authService.hashPassword(
+      createUserDto.password,
+    );
+    createUserDto.password = password;
+
     try {
-      return await this.userRepository.insert(createUserDto);
+      return await this.userRepository.createOne(createUserDto);
     } catch (error) {
       throw new HttpException(
         'Error creating the user.',
@@ -25,7 +34,7 @@ export class UserService {
     }
   }
 
-  async update(
+  async updateOne(
     id: number,
     requestUser: Partial<User>,
     updateUserDto: UpdateUserDto,
@@ -47,7 +56,7 @@ export class UserService {
     }
 
     try {
-      const updatedUser = await this.userRepository.updateById(
+      const updatedUser = await this.userRepository.updateOneById(
         id,
         updateUserDto,
       );
@@ -98,7 +107,7 @@ export class UserService {
     return user;
   }
 
-  async remove(id: number, requestUser: Partial<User>) {
+  async removeOne(id: number, requestUser: Partial<User>) {
     const validateUserAccess = this.validateRoleAndAccess(id, requestUser);
     if (!validateUserAccess) {
       throw new HttpException(
@@ -107,7 +116,7 @@ export class UserService {
       );
     }
 
-    const deletedUser = await this.userRepository.removeById(id);
+    const deletedUser = await this.userRepository.removeOneById(id);
     if (!deletedUser) {
       throw new HttpException(`Error deleting the user.`, HttpStatus.NOT_FOUND);
     }

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Role, User } from '../../user/entities/user.entity';
 import { CreateSpotDto } from '../dto/create-spot.dto';
 import { FindAllSpotsParams } from '../dto/find-all-spots.dto';
@@ -6,11 +6,16 @@ import { SpotRepository } from '../repository/spot.repository';
 
 @Injectable()
 export class SpotService {
-  constructor(@Inject(SpotRepository) private spotRepository: SpotRepository) {}
-  async create(userId: number, createSpotDto: CreateSpotDto): Promise<number> {
+  constructor(private readonly spotRepository: SpotRepository) {}
+
+  async createOne(
+    requestUser: Partial<User>,
+    createSpotDto: CreateSpotDto,
+  ): Promise<number> {
+    const requestUserId = requestUser.id;
     const isSpotRegistred = await this.spotRepository.findByRoomUserAndPlace(
       createSpotDto.room,
-      userId,
+      requestUserId,
       createSpotDto.place,
     );
     if (isSpotRegistred) {
@@ -20,15 +25,18 @@ export class SpotService {
       );
     }
 
-    const newSpotId = await this.spotRepository.insert(createSpotDto, userId);
-    if (!newSpotId) {
+    const createdSpotId = await this.spotRepository.createOne(
+      createSpotDto,
+      requestUserId,
+    );
+    if (!createdSpotId) {
       throw new HttpException(
         'Error creating the spot.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
-    return newSpotId;
+    return createdSpotId;
   }
 
   async findAll(requestUser: Partial<User>, filters: FindAllSpotsParams) {
@@ -44,7 +52,7 @@ export class SpotService {
 
     //#region Query execution
     try {
-      return await this.spotRepository.find(filters);
+      return await this.spotRepository.findOne(filters);
     } catch (error) {
       throw new HttpException(
         'Error getting all spots.',
@@ -68,18 +76,18 @@ export class SpotService {
     }
     //#endregion
 
-    const spot = await this.spotRepository.findById(id);
-    if (!spot) {
+    const createdSpot = await this.spotRepository.findOneById(id);
+    if (!createdSpot) {
       throw new HttpException(
         `Spot with id ${id} not found.`,
         HttpStatus.NOT_FOUND,
       );
     }
 
-    return spot;
+    return createdSpot;
   }
 
-  async remove(requestUser: Partial<User>, id: number) {
+  async removeOne(requestUser: Partial<User>, id: number) {
     //#region User access control
     const validateUserAccess = await this.validateUserAccessToSpot(
       id,
@@ -93,7 +101,7 @@ export class SpotService {
     }
     //#endregion
 
-    const removedSpot = await this.spotRepository.removeById(id);
+    const removedSpot = await this.spotRepository.removeOne(id);
     if (!removedSpot) {
       throw new HttpException(
         `Spot with id ${id} not found.`,
@@ -105,7 +113,7 @@ export class SpotService {
   }
 
   async isSpotFromUser(spotId: number, userId: number) {
-    const spot = await this.spotRepository.findById(spotId);
+    const spot = await this.spotRepository.findOneById(spotId);
     const spotUserId = spot ? spot.user.id : null;
 
     return spotUserId === userId;

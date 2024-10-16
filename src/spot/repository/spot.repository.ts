@@ -9,32 +9,34 @@ import { Spot } from '../entities/spot.entity';
 export class SpotRepository {
   constructor(
     private readonly dataSource: DataSource,
-    @InjectRepository(Spot) private spotRepository: Repository<Spot>,
+    @InjectRepository(Spot) private readonly spotRepository: Repository<Spot>,
   ) {}
 
   private initiateQueryBuilder() {
     return this.spotRepository.createQueryBuilder('spot');
   }
 
-  async insert(spotData: CreateSpotDto, userId: number) {
+  async createOne(createSpotDto: CreateSpotDto, userId: number) {
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const result = await queryRunner.manager.insert(Spot, { ...spotData });
-      const identifiers = result.identifiers;
-      const spotId = identifiers[0].id as number;
+      const createdSpot = await queryRunner.manager.insert(Spot, {
+        ...createSpotDto,
+      });
+      const identifiers = createdSpot.identifiers;
+      const createdSpotId = identifiers[0].id as number;
 
       await this.dataSource
         .createQueryBuilder()
         .relation(Spot, 'user')
-        .of(spotId)
+        .of(createdSpotId)
         .set(userId);
       await queryRunner.commitTransaction();
 
-      return spotId;
+      return createdSpotId;
     } catch (error) {
       await queryRunner.rollbackTransaction();
 
@@ -52,7 +54,7 @@ export class SpotRepository {
       .getOne();
   }
 
-  async find(filters: FindAllSpotsParams) {
+  async findOne(filters: FindAllSpotsParams) {
     const { userId } = filters;
 
     let query = this.initiateQueryBuilder()
@@ -66,7 +68,7 @@ export class SpotRepository {
     return await query.getMany();
   }
 
-  async findById(id: number) {
+  async findOneById(id: number) {
     return await this.initiateQueryBuilder()
       .leftJoinAndSelect('spot.user', 'user')
       .leftJoinAndSelect('spot.plants', 'plants')
@@ -74,7 +76,7 @@ export class SpotRepository {
       .getOne();
   }
 
-  async removeById(id: number) {
+  async removeOne(id: number) {
     const removedSpot = await this.initiateQueryBuilder()
       .delete()
       .where('id = :id', { id })

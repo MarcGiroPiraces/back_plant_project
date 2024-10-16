@@ -8,9 +8,9 @@ import { Transplanting } from '../entities/transplanting.entity';
 @Injectable()
 export class TransplantingRepository {
   constructor(
-    private dataSource: DataSource,
+    private readonly dataSource: DataSource,
     @InjectRepository(Transplanting)
-    private transplantingRepository: Repository<Transplanting>,
+    private readonly transplantingRepository: Repository<Transplanting>,
   ) {}
 
   private initiateQueryBuilder() {
@@ -21,8 +21,8 @@ export class TransplantingRepository {
     return this.dataSource.createQueryRunner();
   }
 
-  async insert(
-    transplantingData: Omit<CreateTransplantingDto, 'plantId'>,
+  async createOne(
+    createTransplantingDto: Omit<CreateTransplantingDto, 'plantId'>,
     relations: { [key: string]: number }[],
   ) {
     const queryRunner = this.startTransaction();
@@ -31,23 +31,26 @@ export class TransplantingRepository {
     await queryRunner.startTransaction();
 
     try {
-      const result = await queryRunner.manager.insert(Transplanting, {
-        ...transplantingData,
-      });
-      const identifiers = result.identifiers;
-      const transplantingId = identifiers[0].id as number;
+      const createdTransplanting = await queryRunner.manager.insert(
+        Transplanting,
+        {
+          ...createTransplantingDto,
+        },
+      );
+      const identifiers = createdTransplanting.identifiers;
+      const createdTransplantingId = identifiers[0].id as number;
 
       await Promise.all(
         relations.map(async (relation) => {
           for (const [key, value] of Object.entries(relation)) {
-            await this.setRelation(transplantingId, value, key);
+            await this.setRelation(createdTransplantingId, value, key);
           }
         }),
       );
 
       await queryRunner.commitTransaction();
 
-      return transplantingId;
+      return createdTransplantingId;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       return false;
@@ -64,7 +67,7 @@ export class TransplantingRepository {
       .set(foreignId);
   }
 
-  async find(filters: FindAllTransplantingsParams) {
+  async findAll(filters: FindAllTransplantingsParams) {
     const { plantId } = filters;
 
     let query = this.initiateQueryBuilder().innerJoinAndSelect(
@@ -94,7 +97,7 @@ export class TransplantingRepository {
       .getOne();
   }
 
-  async removeById(id: number) {
+  async removeOne(id: number) {
     const removedTransplanting = await this.initiateQueryBuilder()
       .delete()
       .where('id = :id', { id })

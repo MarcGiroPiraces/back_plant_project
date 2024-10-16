@@ -35,7 +35,7 @@ export class WateringController {
     description: 'Create a watering.',
     type: Number,
   })
-  create(@Body() createWateringDto: CreateWateringDto) {
+  createOne(@Body() createWateringDto: CreateWateringDto) {
     return this.wateringService.create(createWateringDto);
   }
 

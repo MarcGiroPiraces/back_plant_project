@@ -8,27 +8,38 @@ import { TransplantingRepository } from '../repository/transplanting.repository'
 @Injectable()
 export class TransplantingService {
   constructor(
-    private transplantingRepository: TransplantingRepository,
-    private plantService: PlantService,
+    private readonly transplantingRepository: TransplantingRepository,
+    private readonly plantService: PlantService,
   ) {}
 
-  async create(createTransplantingDto: CreateTransplantingDto) {
+  async createOne(
+    requestUser: Partial<User>,
+    createTransplantingDto: CreateTransplantingDto,
+  ) {
+    const isPlantFromUser = await this.plantService.isPlantFromUser(
+      createTransplantingDto.plantId,
+      requestUser.id,
+    );
+    if (!isPlantFromUser) {
+      throw new HttpException('Not your plant.', HttpStatus.FORBIDDEN);
+    }
+
     const { plantId, ...transplantingData } = createTransplantingDto;
     const relations = [{ plant: plantId }];
-
     try {
-      const newTransplantingId = await this.transplantingRepository.insert(
-        transplantingData,
-        relations,
-      );
-      if (!newTransplantingId) {
+      const createdTransplantingId =
+        await this.transplantingRepository.createOne(
+          transplantingData,
+          relations,
+        );
+      if (!createdTransplantingId) {
         throw new HttpException(
           'Error creating the transplanting.',
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
 
-      return newTransplantingId;
+      return createdTransplantingId;
     } catch (error) {
       throw new HttpException(
         'Error creating the transplanting.',
@@ -53,7 +64,7 @@ export class TransplantingService {
       );
 
     try {
-      return await this.transplantingRepository.find(filters);
+      return await this.transplantingRepository.findAll(filters);
     } catch (error) {
       throw new HttpException(
         'Error while fetching transplanting.',
@@ -90,7 +101,7 @@ export class TransplantingService {
     }
   }
 
-  async remove(requestUser: Partial<User>, id: number) {
+  async removeOne(requestUser: Partial<User>, id: number) {
     //#region User access control
     const isTransplantingFromUser = await this.isTransplantingFromUser(
       id,
@@ -105,8 +116,9 @@ export class TransplantingService {
     //#endregion
 
     try {
-      const removedTransplanting =
-        await this.transplantingRepository.removeById(id);
+      const removedTransplanting = await this.transplantingRepository.removeOne(
+        id,
+      );
 
       if (removedTransplanting) {
         throw new HttpException(

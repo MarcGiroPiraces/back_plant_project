@@ -7,16 +7,15 @@ import { User } from '../entities/user.entity';
 @Injectable()
 export class UserRepository {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
   private initiateQueryBuilder() {
     return this.userRepository.createQueryBuilder('user');
   }
 
-  async insert(userData: CreateUserDto) {
-    const { identifiers } = await this.userRepository
-      .createQueryBuilder()
+  async createOne(userData: CreateUserDto) {
+    const { identifiers } = await this.initiateQueryBuilder()
       .insert()
       .into(User)
       .values(userData)
@@ -25,9 +24,8 @@ export class UserRepository {
     return identifiers[0].id as number;
   }
 
-  async updateById(id: number, userData: Partial<User>) {
-    const updatedUser = await this.userRepository
-      .createQueryBuilder()
+  async updateOneById(id: number, userData: Partial<User>) {
+    const updatedUser = await this.initiateQueryBuilder()
       .update(User)
       .set(userData)
       .where('id = :id', { id })
@@ -58,9 +56,8 @@ export class UserRepository {
       .getMany();
   }
 
-  async removeById(id: number) {
-    const deletedUser = await this.userRepository
-      .createQueryBuilder()
+  async removeOneById(id: number) {
+    const deletedUser = await this.initiateQueryBuilder()
       .delete()
       .from(User)
       .where('id = :id', { id })

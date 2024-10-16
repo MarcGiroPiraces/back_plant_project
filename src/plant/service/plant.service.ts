@@ -9,17 +9,20 @@ import { PlantRepository } from '../repository/plant.repository';
 @Injectable()
 export class PlantService {
   constructor(
-    private plantRepository: PlantRepository,
-    private spotService: SpotService,
+    private readonly plantRepository: PlantRepository,
+    private readonly spotService: SpotService,
   ) {}
 
-  async create(
+  async createOne(
     requestUser: Partial<User>,
-    plantData: CreatePlantDto,
+    createPlantDto: CreatePlantDto,
   ): Promise<number> {
     const userId = requestUser.id;
     const isPlantNameRegistered =
-      await this.plantRepository.findByNameAndUserId(plantData.name, userId);
+      await this.plantRepository.findOneByNameAndUserId(
+        createPlantDto.name,
+        userId,
+      );
     if (isPlantNameRegistered) {
       throw new HttpException(
         'Plant name is already in use.',
@@ -27,22 +30,32 @@ export class PlantService {
       );
     }
 
-    const { spotId, photoId, ...plantDataWithoutSpotId } = plantData;
+    const { spotId, photoId, ...plantDataWithoutSpotId } = createPlantDto;
+    const isSpotFromUser = await this.spotService.isSpotFromUser(
+      spotId,
+      userId,
+    );
+    if (!isSpotFromUser) {
+      throw new HttpException(
+        'You can only create a plant in your own spot.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     const relations = [{ spot: spotId }, { user: userId }, { photos: photoId }];
     try {
-      const newPlantId = await this.plantRepository.insert(
+      const createdPlantId = await this.plantRepository.createOne(
         plantDataWithoutSpotId,
         new Date(),
         relations,
       );
-      if (!newPlantId) {
+      if (!createdPlantId) {
         throw new HttpException(
           'Error creating the plant.',
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
 
-      return newPlantId;
+      return createdPlantId;
     } catch (error) {
       throw new HttpException(
         'Error creating the plant.',
@@ -51,10 +64,10 @@ export class PlantService {
     }
   }
 
-  async update(
+  async updateOne(
     requestUser: Partial<User>,
     id: number,
-    plantData: UpdatePlantDto,
+    updatePlantDto: UpdatePlantDto,
   ) {
     //#region Validate user access to plant
     const validateUserAccess = await this.validateUserAccessToPlant(
@@ -68,9 +81,9 @@ export class PlantService {
       );
     }
     //#endregion
-    const { spotId, ...plantDataWithoutSpotId } = plantData;
+    const { spotId, ...plantDataWithoutSpotId } = updatePlantDto;
 
-    const updatedPlant = await this.plantRepository.updateById(
+    const updatedPlant = await this.plantRepository.updateOne(
       id,
       plantDataWithoutSpotId,
       spotId,
@@ -87,7 +100,7 @@ export class PlantService {
 
   async findAll(requestUser: Partial<User>, filters: FindAllPlantsParams) {
     //#region User access control
-    const isFiltersValid = await this.validateFilters(filters, requestUser);
+    const isFiltersValid = await this.validateFilters(requestUser, filters);
     if (!isFiltersValid) {
       throw new HttpException('Invalid filters.', HttpStatus.BAD_REQUEST);
     }
@@ -95,7 +108,7 @@ export class PlantService {
 
     //#region Query execution
     try {
-      return await this.plantRepository.find(filters);
+      return await this.plantRepository.findOne(filters);
     } catch (error) {
       throw new HttpException(
         'Error getting all plants.',
@@ -118,7 +131,7 @@ export class PlantService {
     }
 
     try {
-      return await this.plantRepository.findById(id);
+      return await this.plantRepository.findOneById(id);
     } catch (error) {
       throw new HttpException(
         `Plant with id ${id} not found.`,
@@ -127,7 +140,7 @@ export class PlantService {
     }
   }
 
-  async remove(requestUser: Partial<User>, id: number) {
+  async removeOne(requestUser: Partial<User>, id: number) {
     const validateUserAccess = await this.validateUserAccessToPlant(
       id,
       requestUser,
@@ -140,7 +153,7 @@ export class PlantService {
     }
 
     try {
-      const removedPlant = await this.plantRepository.removeById(id);
+      const removedPlant = await this.plantRepository.removeOne(id);
       if (!removedPlant) {
         throw new HttpException(
           `Plant with id ${id} not found.`,
@@ -165,7 +178,10 @@ export class PlantService {
   }
 
   async isPlantFromUser(plantId: number, userId: number) {
-    const plant = await this.plantRepository.findByIdAndUserId(plantId, userId);
+    const plant = await this.plantRepository.findOneByIdAndUserId(
+      plantId,
+      userId,
+    );
 
     return !!plant;
   }
@@ -178,8 +194,8 @@ export class PlantService {
    * spotId is optional, if sent, the user needs to have access to it.
    */
   private async validateFilters(
-    filters: FindAllPlantsParams,
     requestUser: Partial<User>,
+    filters: FindAllPlantsParams,
   ) {
     const isRequestUserAdmin = requestUser.role === Role.Admin;
     const { spotId, userId } = filters;
